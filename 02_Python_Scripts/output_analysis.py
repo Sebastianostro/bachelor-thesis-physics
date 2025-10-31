@@ -1,4 +1,7 @@
 import smash_read
+import pdg
+
+api = pdg.connect()
 
 # Define file information (paths, names)
 path_to_file = '/home/ostrowski/smash/build/data/'  # Replace with your SMASH file path
@@ -13,13 +16,21 @@ smash_data = smash_read.read_smash_file(smash_file)
 
 # Check if data was read successfully
 if smash_data is not None:
-    print(smash_data.head())
+    #print(smash_data.head())
     smash_data_enriched = smash_read.calculate_rapidity(smash_data)
     smash_data_enriched = smash_read.calculate_invariant_mass(smash_data)
-    print(smash_data_enriched.head())
+    #print(smash_data_enriched.head())
 else:
     print("Failed to read SMASH data.")
 
 unique_pdg_ids = smash_data[9].unique()
 print(f"Unique PDG IDs in the data: {unique_pdg_ids}")
+print("Particle names corresponding to PDG IDs:")
+for pdg_id in unique_pdg_ids:
+    particle = api.get(pdg_id)
+    if particle is not None:
+        print(f"PDG ID: {pdg_id}, Name: {particle.name}")
+    else:
+        print(f"PDG ID: {pdg_id}, Name: Unknown particle")
+
 

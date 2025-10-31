@@ -18,7 +18,7 @@ import numpy as np
 def read_smash_file(file_path):
     try:
         # Read the SMASH file using pandas
-        data = pd.read_csv(file_path, delim_whitespace=True, comment='#', header=None)
+        data = pd.read_csv(file_path, sep='\\s+', comment='#', header=None)
         return data
     except Exception as e:
         print(f"Error reading file: {e}")
