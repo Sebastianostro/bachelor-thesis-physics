@@ -5,12 +5,6 @@ import numpy as np
 
 # Define constants if needed (currently none)
 
-# Define file information (paths, names)
-path_to_file = '/home/ostrowski/smash/build/data/'  # Replace with your SMASH file path
-path_to_data = '1/' # Example data subdirectory
-file_name = 'particle_lists.oscar'  # Example SMASH output file name
-smash_file = path_to_file + path_to_data + file_name  # full path to the SMASH file
-
 # Define functions
 ## Function to read SMASH file
 ### This function reads a SMASH output file and returns its contents as a pandas DataFrame.
@@ -29,7 +23,6 @@ def read_smash_file(file_path):
         print(f"Error reading file: {e}")
         return None
 
-#TODO: Check invariant mass calculations
 ## Function to calculate rapidity values for data in a DataFrame
 ### Input: 
 # "df" is the original Pandas DataFrame without rapidity information
@@ -57,19 +50,5 @@ def calculate_invariant_mass(df, col_no_energy=5, col_no_px=6, col_no_py=7, col_
     pz = df[col_no_pz]
     df['m_inv'] = (p0**2 - (px**2 + py**2 + pz**2))
     return df
-
-# Main script execution
-# Read the SMASH file and store the data in a DataFrame
-smash_data = read_smash_file(smash_file)
-# Check if data was read successfully
-if smash_data is not None:
-    # Display the first few rows of the DataFrame
-    print(smash_data.head())
-    smash_data_enriched = calculate_rapidity(smash_data)
-    smash_data_enriched = calculate_invariant_mass(smash_data)
-    print(smash_data_enriched.head())
-    print(smash_data_enriched[smash_data_enriched['m_inv']<0].head())  # Display first few rows with valid invariant mass
-else:
-    print("Failed to read SMASH data.")
 
 # End of script
