@@ -1,4 +1,5 @@
-# First script to read and display contents of a SMASH file
+# Script that reads data from a SMASH output file and provides functions to calculate rapidity and invariant mass.
+
 # Import necessary libraries
 import pandas as pd
 import numpy as np
