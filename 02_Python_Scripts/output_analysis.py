@@ -25,12 +25,10 @@ else:
 
 unique_pdg_ids = smash_data[9].unique()
 print(f"Unique PDG IDs in the data: {unique_pdg_ids}")
-print("Particle names corresponding to PDG IDs:")
+
 for pdg_id in unique_pdg_ids:
-    particle = api.get(pdg_id)
+    particle = api.get_particle_by_mcid(int(pdg_id))
     if particle is not None:
-        print(f"PDG ID: {pdg_id}, Name: {particle.name}")
+        print(f"PDG ID: {pdg_id}, Name: {particle}")
     else:
         print(f"PDG ID: {pdg_id}, Name: Unknown particle")
-
-
