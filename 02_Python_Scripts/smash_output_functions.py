@@ -3,6 +3,7 @@
 # Import necessary libraries
 import numpy as np
 import pdg
+import matplotlib.pyplot as plt
 
 # Define constants if needed (currently none)
 
@@ -87,4 +88,38 @@ def print_basic_statistics(df):
     mean_invariant_mass = df['m_inv'].groupby(df['pdg_name']).mean()
     print(f"Mean Rapidity: {mean_rapidity}")
     print(f"Mean Invariant Mass: {mean_invariant_mass}")
+
+## Function to plot histograms of rapidity and invariant mass
+def plot_histograms(df, normalized=False):
+    '''
+    Input:
+        "df" is the DataFrame containing SMASH data with columns for rapidity (named "y") and invariant mass (named "m_inv")
+        "normalized" is a boolean indicating whether to normalize the histograms (default is False)
+    Output:
+        Displays histograms of rapidity and invariant mass.
+    '''
+    # Plot histogram of rapidity
+    if normalized:
+        weights_rapidity = np.ones_like(df['y']) / len(df)
+        weights_invariant_mass = np.ones_like(df['m_inv']) / len(df)
+    else:
+        weights_rapidity = None
+        weights_invariant_mass = None
+    plt.figure(figsize=(12, 5))
+    plt.subplot(1, 2, 1)
+    plt.hist(df['y'], bins=50, weights=weights_rapidity, alpha=0.7, color='blue')
+    plt.title('Rapidity Distribution')
+    plt.xlabel('Rapidity (y)')
+    plt.ylabel('Counts' if not normalized else 'Normalized Counts')
+    plt.grid()
+    # Plot histogram of invariant mass
+    plt.subplot(1, 2, 2)
+    plt.hist(df['m_inv'], bins=50, weights=weights_invariant_mass, alpha=0.7, color='green')
+    plt.title('Invariant Mass Distribution')
+    plt.xlabel('Invariant Mass (m_inv)')
+    plt.ylabel('Counts' if not normalized else 'Normalized Counts')
+    plt.grid()
+    plt.tight_layout()
+    plt.show()
+
 # End of script
