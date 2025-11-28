@@ -42,6 +42,17 @@ def calculate_invariant_mass(df, col_no_energy=5, col_no_px=6, col_no_py=7, col_
     df['m_inv'] = (p0**2 - (px**2 + py**2 + pz**2))
     return df
 
+## Function to get PDG name from PDG ID
+def get_pdg_name(pdg_id)-> str:
+    # Connect to PDG API
+    api = pdg.connect()
+
+    particle = api.get_particle_by_mcid(int(pdg_id))
+    if particle is not None:
+        return str(particle)
+    else:
+        return "Unknown particle"
+
 ## Function to add PDG names to the DataFrame based on PDG IDs
 def add_pdg_names(df, pdg_column=9)-> pd.DataFrame:
     '''
@@ -51,17 +62,6 @@ def add_pdg_names(df, pdg_column=9)-> pd.DataFrame:
     Output:
         DataFrame enriched by a column containing the PDG names (named 'pdg_name')
     '''
-    # Connect to PDG API
-    api = pdg.connect()
-    
-    # Function to get PDG name from PDG ID
-    def get_pdg_name(pdg_id)-> str:
-        particle = api.get_particle_by_mcid(int(pdg_id))
-        if particle is not None:
-            return str(particle)
-        else:
-            return "Unknown particle"
-    
     # Add PDG names to the DataFrame
     df['pdg_name'] = df[pdg_column].apply(get_pdg_name)
     return df
