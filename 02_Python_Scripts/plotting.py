@@ -33,18 +33,21 @@ def plot_distribution(df, pdg_id, column_name, bins=50):
     plt.grid(True)
     plt.show()
 
+# Example usage
 if __name__ == "__main__":
     # Example usage (this part can be removed or modified as needed)
     import pandas as pd
 
-    # Create a sample DataFrame for demonstration
+    # Create a sample DataFrame for demonstration consisting of PDG IDs and rapidity values for 10.000 particles
     data = {
-        9: [2212, 2212, 2112, 2212, 2112, 2212],  # PDG IDs
-        'y': [0.1, 0.5, -0.3, 0.2, -0.1, 0.4]     # Rapidity values
+        9: np.random.choice([2212, 111], size=10000),  # PDG IDs
+        'y': np.random.normal(loc=0, scale=2, size=10000)  # Rapidity values
     }
+    
     df = pd.DataFrame(data)
 
     # Plot distribution for protons (PDG ID 2212)
-    plot_distribution(df, pdg_id=2212, column_name='y', bins=10)
+    plot_distribution(df, pdg_id=2212, column_name='y', bins=50)
+    print(script_dir)
 
 # End of script
