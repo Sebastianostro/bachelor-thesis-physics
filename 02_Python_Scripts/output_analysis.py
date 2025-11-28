@@ -41,6 +41,6 @@ smash_data_enriched = sof.calculate_invariant_mass(smash_data)
 sof.print_basic_statistics(smash_data_enriched)
 
 # Plot histograms of rapidity and invariant mass
-sof.plot_histograms(smash_data_enriched)
+sof.plot_distribution(smash_data_enriched, 2112, 'y')
 # End of script
 

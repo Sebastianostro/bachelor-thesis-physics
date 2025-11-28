@@ -3,13 +3,13 @@
 # Import necessary libraries
 import numpy as np
 import pdg
-import matplotlib.pyplot as plt
+import pandas as pd
 
 # Define constants if needed (currently none)
 
 # Define functions
 ## Function to calculate rapidity values for data in a DataFrame
-def calculate_rapidity(df, col_no_energy=5, col_no_beam=8):
+def calculate_rapidity(df, col_no_energy=5, col_no_beam=8)-> pd.DataFrame:
     '''
     Input: 
     "df" is the original Pandas DataFrame without rapidity information
@@ -24,7 +24,7 @@ def calculate_rapidity(df, col_no_energy=5, col_no_beam=8):
     return df
 
 ## Function to calculate invariant mass for data in a DataFrame
-def calculate_invariant_mass(df, col_no_energy=5, col_no_px=6, col_no_py=7, col_no_pz=8):
+def calculate_invariant_mass(df, col_no_energy=5, col_no_px=6, col_no_py=7, col_no_pz=8)-> pd.DataFrame:
     '''
     Input: 
         "df" is the original Pandas DataFrame without invariant mass information
@@ -43,7 +43,7 @@ def calculate_invariant_mass(df, col_no_energy=5, col_no_px=6, col_no_py=7, col_
     return df
 
 ## Function to add PDG names to the DataFrame based on PDG IDs
-def add_pdg_names(df, pdg_column=9):
+def add_pdg_names(df, pdg_column=9)-> pd.DataFrame:
     '''
     Input:
         "df" is the DataFrame without PDG names
@@ -55,7 +55,7 @@ def add_pdg_names(df, pdg_column=9):
     api = pdg.connect()
     
     # Function to get PDG name from PDG ID
-    def get_pdg_name(pdg_id):
+    def get_pdg_name(pdg_id)-> str:
         particle = api.get_particle_by_mcid(int(pdg_id))
         if particle is not None:
             return str(particle)
@@ -80,7 +80,7 @@ def print_basic_statistics(df):
     # Number of total particles
     num_particles = len(df)
     # Number per unique particle type
-    num_particles_per_type = df['pdg_name'].value_counts()
+    num_particles_per_type = df[9].value_counts()
 
     print(f"Total number of particles: {num_particles}")
     print(f"Number of particles per type: {num_particles_per_type}")
@@ -88,38 +88,5 @@ def print_basic_statistics(df):
     mean_invariant_mass = df['m_inv'].groupby(df['pdg_name']).mean()
     print(f"Mean Rapidity: {mean_rapidity}")
     print(f"Mean Invariant Mass: {mean_invariant_mass}")
-
-## Function to plot histograms of rapidity and invariant mass
-def plot_histograms(df, normalized=False):
-    '''
-    Input:
-        "df" is the DataFrame containing SMASH data with columns for rapidity (named "y") and invariant mass (named "m_inv")
-        "normalized" is a boolean indicating whether to normalize the histograms (default is False)
-    Output:
-        Displays histograms of rapidity and invariant mass.
-    '''
-    # Plot histogram of rapidity
-    if normalized:
-        weights_rapidity = np.ones_like(df['y']) / len(df)
-        weights_invariant_mass = np.ones_like(df['m_inv']) / len(df)
-    else:
-        weights_rapidity = None
-        weights_invariant_mass = None
-    plt.figure(figsize=(12, 5))
-    plt.subplot(1, 2, 1)
-    plt.hist(df['y'], bins=50, weights=weights_rapidity, alpha=0.7, color='blue')
-    plt.title('Rapidity Distribution')
-    plt.xlabel('Rapidity (y)')
-    plt.ylabel('Counts' if not normalized else 'Normalized Counts')
-    plt.grid()
-    # Plot histogram of invariant mass
-    plt.subplot(1, 2, 2)
-    plt.hist(df['m_inv'], bins=50, weights=weights_invariant_mass, alpha=0.7, color='green')
-    plt.title('Invariant Mass Distribution')
-    plt.xlabel('Invariant Mass (m_inv)')
-    plt.ylabel('Counts' if not normalized else 'Normalized Counts')
-    plt.grid()
-    plt.tight_layout()
-    plt.show()
 
 # End of script
