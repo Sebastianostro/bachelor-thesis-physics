@@ -89,4 +89,7 @@ def print_basic_statistics(df):
     print(f"Mean Rapidity: {mean_rapidity}")
     print(f"Mean Invariant Mass: {mean_invariant_mass}")
 
+# Test script functionality if run as main module
+if __name__ == "__main__":
+    print(get_pdg_name(2112))
 # End of script
