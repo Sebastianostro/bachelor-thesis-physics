@@ -1,0 +1,21 @@
+[project]
+name = "bsc-project"
+version = "0.1.0"
+description = "Package containing the Python modules to be installed in order to run the respective scripts."
+authors = [
+    {name = "Your Name",email = "you@example.com"}
+]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "matplotlib (==3.10.7)",
+    "numpy (==2.3.4)",
+    "pandas (==2.3.3)",
+    "pdg (==0.2.1)",
+    "scipy (==1.16.3)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
