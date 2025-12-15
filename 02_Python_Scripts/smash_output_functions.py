@@ -91,5 +91,5 @@ def print_basic_statistics(df):
 
 # Test script functionality if run as main module
 if __name__ == "__main__":
-    print(get_pdg_name(2112))
+    print(get_pdg_name(111))
 # End of script
