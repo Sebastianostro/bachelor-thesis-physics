@@ -8,15 +8,14 @@ import pdg
 api = pdg.connect()
 
 # Define file information (paths, names)
-path_to_data = 'Dilepton_Nevents_5_OutInt_NaN/' # Example data subdirectory
+data_dir_name = 'Dilepton_Nevents_5_OutInt_NaN/' # Example data subdirectory
 file_name = 'Dileptons.oscar'  # Example SMASH output file name
 # Construct full path to the SMASH file
-smash_file = sr.get_output_file(file_name, path_to_data)
+path_to_smash_data = sr.get_path_to_output_file(file_name, data_dir_name)
 
-# Main script execution
 # Read the SMASH file and store the data in a DataFrame
 try:
-    smash_data = sr.read_smash_dilepton_file(smash_file)
+    smash_data = sr.read_smash_dilepton_file(path_to_smash_data)
 except Exception as e:
     print(f"Error reading file: {e}")
     sys.exit(1)
