@@ -170,11 +170,11 @@ def read_smash_table_with_blocks(path: Path) -> pd.DataFrame:
 # -----------------------------
 if __name__ == "__main__":
     # Beispielhafte Nutzung des Dilepton-Dataclass
-    data_dir_name = 'Dilepton_Nevents_5_OutInt_NaN/' # Example data subdirectory
+    data_dir_name = 'Dilepton_Output_Std_Nevents_5_OutInt_NaN/' # Example data subdirectory
     file_name = 'Dileptons.oscar'  # Example SMASH output file name
     # Construct full path to the SMASH file
     path_to_smash_data = io_smash.get_path_to_output_file(file_name, data_dir_name)
 
     df = read_smash_table_with_blocks(path_to_smash_data)
-    print(df.head())
+    print(df)
 # End of script
