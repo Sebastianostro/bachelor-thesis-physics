@@ -5,11 +5,14 @@
 from __future__ import annotations
 import sys
 from dataclasses import dataclass
+from pathlib import Path
 from io import StringIO
 import re
 from typing import Optional, List, Dict, Any
 import numpy as np
 import pandas as pd
+
+import io_smash
 
 # -----------------------------
 # CONSTANTS AND SETTINGS
@@ -45,56 +48,14 @@ OSCAR_DATA_TYPES = {
 # -----------------------------
 # FUNCTIONS AND CLASSES
 # -----------------------------
-## Define a dataclass to represent a run of SMASH output data
-@dataclass
-class DileptonRun:
-    df: pd.DataFrame
-
-    @staticmethod
-    def from_blocked_file(path: str, comment_prefix: str = "#") -> "DileptonRun":
-        # Datei lesen und in Blöcke aus Datenzeilen aufteilen
-        blocks: list[list[str]] = []
-        current: list[str] = []
-
-        with open(path, "r", encoding="utf-8") as f:
-            for line in f:
-                s = line.strip()
-                if not s:
-                    continue
-                if s.startswith(comment_prefix):
-                    # Kommentarzeile trennt Blöcke (oder enthält Header)
-                    if current:
-                        blocks.append(current)
-                        current = []
-                    continue
-                current.append(line)
-
-        if current:
-            blocks.append(current)
-
-        # Jeden Block als Tabelle lesen
-        dfs = []
-        for i, lines in enumerate(blocks):
-            text = "".join(lines)
-            df_i = pd.read_csv(StringIO(text), sep=r"\s+", engine="python")
-            df_i["block_id"] = i
-            dfs.append(df_i)
-
-        df = pd.concat(dfs, ignore_index=True) if dfs else pd.DataFrame()
-        return DileptonRun(df=df)
-
-    def add_derived_columns(self) -> None:
-        # Beispiel: neue Spalte aus vorhandenen
-        # self.df["ratio"] = self.df["A"] / self.df["B"]
-        pass
-
+## Regular expressions for parsing block metadata
 _INTERACTION_RE = re.compile(
     r"#\s*interaction.*?\bweight\s+(?P<weight>[-+0-9.eE]+).*?\bpartial\s+(?P<partial>[-+0-9.eE]+).*?\btype\s+(?P<type>[-+0-9]+)"
 )
 
 _EVENT_RE = re.compile(r"#\s*event\s+(?P<event>\d+)\s+ensemble\s+(?P<ensemble>\d+)")
 
-
+## Dataclass to hold block context information
 @dataclass
 class BlockContext:
     weight: Optional[float] = None
@@ -103,29 +64,43 @@ class BlockContext:
     event: Optional[int] = None
     ensemble: Optional[int] = None
 
-
-def read_smash_table_with_blocks(path: str) -> pd.DataFrame:
+## Function to read SMASH/OSCAR-like tables with block metadata
+def read_smash_table_with_blocks(path: Path) -> pd.DataFrame:
     """
     Liest SMASH/OSCAR-ähnliche Tabellen mit Kommentarzeilen und blockweisen Metadaten.
     Hängt Block-Metadaten (weight/partial/type + optional event/ensemble) an jede Datenzeile.
     """
-    colnames: Optional[List[str]] = None
+    # column names and data rows
+    colnames: List[str] = []
     rows: List[List[Any]] = []
-
+    # initial block context
     ctx = BlockContext()
+    # variables to track event state
+    had_data_in_event = False
+    seen_event = False
 
+    # helper function to append empty event row if no dileptons were recorded in an event
+    def _append_empty_event() -> None:
+        if not colnames:
+            raise ValueError("Keine Spaltennamen gefunden (fehlende '#!' Headerzeile?).")
+        rows.append(
+            [0.0] * len(colnames)
+            + [0.0, 0.0, 0, ctx.event, 0] # default values for empty event
+        )
+
+    # read the file line by line
     with open(path, "r", encoding="utf-8", errors="replace") as f:
         for line in f:
+            # clean line and skip empty lines
             line = line.strip()
             if not line:
                 continue
 
-            # Header: Spaltennamen
+            # Header: column names
             if line.startswith("#!"):
-                # Beispiel: "#!OSCAR... Dileptons t x y z mass ..."
+                # Example: "#!OSCAR... Dileptons t x y z mass ..."
                 parts = line.split()
-                # Spaltennamen beginnen hier typischerweise nach dem "Dileptons"-Token
-                # Falls das bei dir anders ist, kann man es anpassen.
+                # look for "Dileptons" token to find column names
                 try:
                     idx = parts.index("Dileptons")
                     colnames = parts[idx + 1 :]
@@ -134,22 +109,31 @@ def read_smash_table_with_blocks(path: str) -> pd.DataFrame:
                     colnames = parts[1:]
                 continue
 
-            # Kommentarzeilen: Block-/Event-Kontext extrahieren
+            # Extract block metadata from comment lines
             if line.startswith("#"):
+                # interaction line parsing. If line matches the pattern defined in _INTERACTION_RE,
+                # it is treated as 'true' although not a real bool. if line does not match, m_int contains 'None'
                 m_int = _INTERACTION_RE.search(line)
                 if m_int:
                     ctx.weight = float(m_int.group("weight"))
                     ctx.partial = float(m_int.group("partial"))
                     ctx.itype = int(m_int.group("type"))
                     continue
-
+                # events line parsing.
                 m_evt = _EVENT_RE.search(line)
                 if m_evt:
+                    # If we have seen an event but had no data lines, append an empty event row
+                    if seen_event and not had_data_in_event:
+                        _append_empty_event()
+                    # Update context with new event info
                     ctx.event = int(m_evt.group("event"))
                     ctx.ensemble = int(m_evt.group("ensemble"))
+                    # Mark that we have seen an event
+                    seen_event = True
+                    had_data_in_event = False
                     continue
 
-                # Sonstige Kommentarzeilen ignorieren
+                # Ignore other comment lines
                 continue
 
             # Datenzeile: schnell parsen
@@ -159,19 +143,23 @@ def read_smash_table_with_blocks(path: str) -> pd.DataFrame:
                 continue
 
             if colnames is None:
-                raise ValueError("Keine Spaltennamen gefunden (fehlende '#!' Headerzeile?).")
+                raise ValueError("No column names found (maybe missing '#!' in header line?).")
 
             if data.size != len(colnames):
                 raise ValueError(
-                    f"Spaltenanzahl passt nicht: got {data.size}, expected {len(colnames)}\n"
+                    f"Number of columns do not fit: got {data.size}, expected {len(colnames)}\n"
                     f"Line: {line}"
                 )
 
-            # Daten + Block-Metadaten
+            # Append data row with current block context
             rows.append(
                 data.tolist()
                 + [ctx.weight, ctx.partial, ctx.itype, ctx.event, ctx.ensemble]
             )
+            had_data_in_event = True
+    # After finishing reading, check if the last event had no data (because at least one event line was seen)
+    if seen_event and not had_data_in_event:
+        _append_empty_event()
 
     df = pd.DataFrame(
         rows,
@@ -179,15 +167,16 @@ def read_smash_table_with_blocks(path: str) -> pd.DataFrame:
     )
     return df
 
-
 # -----------------------------
 # MAIN SCRIPT EXECUTION
 # -----------------------------
 if __name__ == "__main__":
     # Beispielhafte Nutzung des Dilepton-Dataclass
-    path_to_file = "example_smash_output.txt"
-    run = DileptonRun.from_blocked_file(path_to_file)
-    run.add_derived_columns()
-    df = run.df
+    data_dir_name = 'Dilepton_Nevents_5_OutInt_NaN/' # Example data subdirectory
+    file_name = 'Dileptons.oscar'  # Example SMASH output file name
+    # Construct full path to the SMASH file
+    path_to_smash_data = io_smash.get_path_to_output_file(file_name, data_dir_name)
+
+    df = read_smash_table_with_blocks(path_to_smash_data)
     print(df.head())
 # End of script
