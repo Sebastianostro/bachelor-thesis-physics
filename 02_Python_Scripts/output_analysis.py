@@ -8,7 +8,6 @@ import plotting as plot
 import pdg
 ## Custom libraries
 import io_smash
-import smash_read as sr
 import smash_output_functions as sof
 
 # -----------------------------

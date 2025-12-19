@@ -1,12 +1,20 @@
-# Imports
+# -----------------------------
+# IMPORTS
+# -----------------------------
+## Standard libraries
 import sys
 from pathlib import Path
 import pandas as pd
 
-# Constants
+# -----------------------------
+# CONSTANTS AND SETTINGS
+# -----------------------------
+## CONSTANTS
 BASE_PATH_TO_DATA = '/home/sebastian/dev/python/bachelor-thesis-physics/05_Files_from_Virgo/'
 
-# Define functions
+# -----------------------------
+# FUNCTIONS
+# -----------------------------
 ## Function to get output file path
 def get_path_to_output_file(file_name, folder_name, base_path=BASE_PATH_TO_DATA)-> Path:
     # Define file information (paths, names)
@@ -23,8 +31,8 @@ def get_path_to_output_file(file_name, folder_name, base_path=BASE_PATH_TO_DATA)
 ## Function to read SMASH dilepton file in .oscar format
 def read_smash_dilepton_file(file_path)-> pd.DataFrame:
     '''
-    This function reads a SMASH Dileptons.oscar output file and returns its contents as a pandas DataFrame.
-    It assumes the file is whitespace-delimited and may contain comment lines starting with '#'.
+    This function reads a SMASH Dileptons.oscar extended output file and returns its contents as a pandas DataFrame.
+    It assumes the file is whitespace-delimited and may contain comment lines starting with '#', which are ignored (wrong for bloc comments due to omitted weight information).
     The file structure is expected to be tabular with the following columns and units:
     t  x  y  z  mass p0  px  py  pz  pdg  ID   charge ncoll form_time xsecfac proc_id_origin proc_type_origin time_last_coll pdg_mother1 pdg_mother2 baryon_number strangeness
     fm fm fm fm GeV  GeV GeV GeV GeV none none e      none  fm        none    none           none             fm             none        none        none          none
@@ -69,6 +77,9 @@ def read_smash_particle_file(file_path)-> pd.DataFrame:
         print(f"Error reading file: {e}")
         sys.exit(1)
 
+# -----------------------------
+# MAIN SCRIPT
+# -----------------------------
 if __name__ == "__main__":
     # Test script functionality if run as main module
     # Example usage
