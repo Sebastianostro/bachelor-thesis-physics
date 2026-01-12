@@ -29,7 +29,7 @@ OSCAR_DATA_TYPES = {
     "pz": "float32",
     "pdg": "int32",
     "ID": "int32",
-    "dilepton_id": "int32",
+    "p_pdg_id": "int32",
     "io_role": "string",
     "charge": "int8",
     "ncoll": "int16",
@@ -118,7 +118,7 @@ _INTERACTION_RE = re.compile(
 _EVENT_RE = re.compile(r"#\s*event\s+(?P<event>\d+)\s+ensemble\s+(?P<ensemble>\d+)")
 
 ## Function to read SMASH/OSCAR-like tables with block metadata
-def read_smash_table_with_blocks(path: Path) -> pd.DataFrame:
+def read_smash_dilepton_output(path: Path) -> pd.DataFrame:
     """
     Liest SMASH/OSCAR-ähnliche Tabellen mit Kommentarzeilen und blockweisen Metadaten.
     Hängt Block-Metadaten (number/weight/partial/type + optional event/ensemble) an jede Datenzeile.
@@ -245,15 +245,15 @@ def aggregate_dilepton_pairs(df: pd.DataFrame) -> pd.DataFrame:
     pd.DataFrame
         DataFrame with aggregated dilepton pairs."""
     # Restrict to columns with time, momenta, pdg, and block metadata for brevity
-    df = df[["t", "p0", "px", "py", "pz", "pdg", "event", "block_no", 
-             "in_particles", "out_particles", "io_role", "block_weight", "block_type"]]
+    df_reduced = df[["t", "p0", "px", "py", "pz", "pdg", "event", "block_no", 
+             "in_particles", "out_particles", "io_role", "block_weight", "block_type"]].copy()
     # Create a new column 'p_pdg_id' (pseudo PDG ID) to uniquely identify dilepton pairs per event and block
     # using an id (int) of '-1111' if pdg id is electron or positron
-    df["p_pdg_id"] = df.apply(
+    df_reduced["p_pdg_id"] = df_reduced.apply(
         lambda row: -1111 if abs(row["pdg"]) == 11 else row["pdg"], axis=1
     )
     # Combine electron and positron entries into dilepton pairs per event and block
-    df = df.groupby(["t", "p_pdg_id", "event", "block_no", "io_role",
+    df_aggregated = df_reduced.groupby(["t", "p_pdg_id", "event", "block_no", "io_role",
                       "block_weight", "block_type"]).agg({
         "p0": "sum",
         "px": "sum",
@@ -261,8 +261,8 @@ def aggregate_dilepton_pairs(df: pd.DataFrame) -> pd.DataFrame:
         "pz": "sum"
     }).sort_values(by=["event", "t", "block_no"]).reset_index()
     # Apply data types
-    df = apply_oscar_dtypes(df)
-    return df
+    df_final = apply_oscar_dtypes(df_aggregated)
+    return df_final
 
 # -----------------------------
 # MAIN SCRIPT
@@ -274,7 +274,7 @@ if __name__ == "__main__":
     # Construct full path to the SMASH file
     path_to_smash_data = get_path_to_output_file(file_name, data_dir_name)
     # Read the SMASH data with block metadata
-    df = read_smash_table_with_blocks(path_to_smash_data)
+    df = read_smash_dilepton_output(path_to_smash_data)
     # Aggregate dilepton pairs
     df = aggregate_dilepton_pairs(df)
     # Print the first few rows of the DataFrame
