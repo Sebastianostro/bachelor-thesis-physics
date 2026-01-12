@@ -191,17 +191,16 @@ def read_smash_table_with_blocks(path: Path) -> pd.DataFrame:
     )
     return df
 
-# -----------------------------
-# MAIN SCRIPT EXECUTION
-# -----------------------------
-if __name__ == "__main__":
-    # Beispielhafte Nutzung des Dilepton-Dataclass
-    data_dir_name = 'Dilepton_Output_Std_Nevents_5_OutInt_NaN/' # Example data subdirectory
-    file_name = 'Dileptons.oscar'  # Example SMASH output file name
-    # Construct full path to the SMASH file
-    path_to_smash_data = io_smash.get_path_to_output_file(file_name, data_dir_name)
-
-    df = read_smash_table_with_blocks(path_to_smash_data)
+## Function to aggregate dilepton pairs from parsed DataFrame
+def aggregate_dilepton_pairs(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Aggregates electron-positron pairs into dilepton entries per event and block.
+    Inputs:
+    df : pd.DataFrame
+        DataFrame containing parsed dilepton data with block metadata.
+    Returns:
+    pd.DataFrame
+        DataFrame with aggregated dilepton pairs."""
     # Restrict to columns with time, momenta, pdg, and block metadata for brevity
     df = df[["t", "p0", "px", "py", "pz", "pdg", "event", "block_no", 
              "in_particles", "out_particles", "io_role", "block_weight", "block_type"]]
@@ -220,6 +219,21 @@ if __name__ == "__main__":
     }).sort_values(by=["event", "t", "block_no"]).reset_index()
     # Apply data types
     df = apply_oscar_dtypes(df)
+    return df
+
+# -----------------------------
+# MAIN SCRIPT EXECUTION
+# -----------------------------
+if __name__ == "__main__":
+    # Beispielhafte Nutzung des Dilepton-Dataclass
+    data_dir_name = 'Dilepton_Output_Std_Nevents_5_OutInt_NaN/' # Example data subdirectory
+    file_name = 'Dileptons.oscar'  # Example SMASH output file name
+    # Construct full path to the SMASH file
+    path_to_smash_data = io_smash.get_path_to_output_file(file_name, data_dir_name)
+    # Read the SMASH data with block metadata
+    df = read_smash_table_with_blocks(path_to_smash_data)
+    # Aggregate dilepton pairs
+    df = aggregate_dilepton_pairs(df)
     # Print the first few rows of the DataFrame
     print(df)
 # End of script
