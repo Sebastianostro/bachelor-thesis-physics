@@ -91,5 +91,7 @@ def print_basic_statistics(df):
 
 # Test script functionality if run as main module
 if __name__ == "__main__":
-    print(get_pdg_name(111))
+    # Example usage and test of functions
+    id = input("Enter PDG ID: ")
+    print(f"PDG name for entered PDG ID {id}: ", get_pdg_name(int(id)))
 # End of script
