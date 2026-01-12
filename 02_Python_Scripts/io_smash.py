@@ -247,13 +247,13 @@ def aggregate_dilepton_pairs(df: pd.DataFrame) -> pd.DataFrame:
     # Restrict to columns with time, momenta, pdg, and block metadata for brevity
     df = df[["t", "p0", "px", "py", "pz", "pdg", "event", "block_no", 
              "in_particles", "out_particles", "io_role", "block_weight", "block_type"]]
-    # Create a new column 'dilepton_id' to uniquely identify dilepton pairs per event and block
+    # Create a new column 'p_pdg_id' (pseudo PDG ID) to uniquely identify dilepton pairs per event and block
     # using an id (int) of '-1111' if pdg id is electron or positron
-    df["dilepton_id"] = df.apply(
+    df["p_pdg_id"] = df.apply(
         lambda row: -1111 if abs(row["pdg"]) == 11 else row["pdg"], axis=1
     )
     # Combine electron and positron entries into dilepton pairs per event and block
-    df = df.groupby(["t", "dilepton_id", "event", "block_no", "io_role",
+    df = df.groupby(["t", "p_pdg_id", "event", "block_no", "io_role",
                       "block_weight", "block_type"]).agg({
         "p0": "sum",
         "px": "sum",

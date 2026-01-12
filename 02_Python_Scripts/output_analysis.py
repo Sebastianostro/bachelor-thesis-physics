@@ -27,7 +27,7 @@ file_name = 'Dileptons.oscar'  # Example SMASH output file name
 # Construct full path to the SMASH file
 path_to_smash_data = io_smash.get_path_to_output_file(file_name, data_dir_name)
 
-smash_data = io_smash.read_smash_dilepton_file(path_to_smash_data)
+smash_data = io_smash.read_smash_table_with_blocks(path_to_smash_data)
 
 # Print the first few rows of the DataFrame
 print(smash_data.head())
