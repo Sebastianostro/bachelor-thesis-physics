@@ -8,37 +8,60 @@ import pandas as pd
 # Define constants if needed (currently none)
 
 # Define functions
+## Function to resolve column specification
+def _resolve_col(df, col, default):
+    if col is None:
+        col = default
+    # String -> direct label
+    if isinstance(col, str):
+        return col
+    # int: if label exists -> take it; else interpret as position argument
+    if isinstance(col, int):
+        if col in df.columns:
+            return col
+        return df.columns[col]
+    raise TypeError(f"Unsupported column spec: {col!r}")
+
 ## Function to calculate rapidity values for data in a DataFrame
-def calculate_rapidity(df, col_no_energy=5, col_no_beam=8)-> pd.DataFrame:
+def calculate_rapidity(df, col_energy=None, col_beam=None)-> pd.DataFrame:
     '''
-    Input: 
-    "df" is the original Pandas DataFrame without rapidity information
-    "col_no_energy" is the column number that contains the energy (aka p0, default value is "5" in SMASH output)
-    "col_no_beam" is the column number that contains the momentum in beam direction (aka pz for z-beam, default value is "8" in SMASH output)
+    Input:
+        "df" is the original Pandas DataFrame without rapidity information
+        "col_energy" is the column that contains the energy (aka p0, default value is "5" in standard SMASH output)
+        "col_beam" is the column that contains the momentum in beam direction (aka pz for z-beam, default value is "8" in standard SMASH output)
     Output: 
-    Original DataFrame enriched by a column containing the rapidity values (named 'y')
+        Original DataFrame enriched by a column containing the rapidity values (named 'y')
     '''
-    p0 = df[col_no_energy]  # Energy column
-    pz = df[col_no_beam]  # pz column
+    p0_label = _resolve_col(df, col_energy, 5)  # Energy column
+    pz_label = _resolve_col(df, col_beam, 8)  # pz column
+    
+    p0 = df[p0_label]
+    pz = df[pz_label]
+
     df['y'] = 0.5 * np.log((p0 + pz) / (p0 - pz))
     return df
 
 ## Function to calculate invariant mass for data in a DataFrame
-def calculate_invariant_mass(df, col_no_energy=None, col_no_px=None, col_no_py=None, col_no_pz=None)-> pd.DataFrame:
+def calculate_invariant_mass(df, col_energy=None, col_px=None, col_py=None, col_pz=None)-> pd.DataFrame:
     '''
     Input: 
         "df" is the original Pandas DataFrame without invariant mass information
-        "col_no_energy" is the column number that contains the energy (aka p0, default value is "5" in SMASH output)
-        "col_no_px" is the column number that contains the momentum in x direction (default value is "6" in SMASH output)
-        "col_no_py" is the column number that contains the momentum in y direction (default value is "7" in SMASH output)
-        "col_no_pz" is the column number that contains the momentum in z direction (default value is "8" in SMASH output)
+        "col_energy" is the column containing the energy (aka p0, default value is "5" in standard SMASH output)
+        "col_px" is the column containing the momentum in x direction (default value is "6" in standard SMASH output)
+        "col_py" is the column containing the momentum in y direction (default value is "7" in standard SMASH output)
+        "col_pz" is the column containing the momentum in z direction (default value is "8" in standard SMASH output)
     Output: 
         Original DataFrame enriched by a column containing the invariant mass values (named 'm_inv')
     '''
-    p0 = df[col_no_energy]
-    px = df[col_no_px]
-    py = df[col_no_py]
-    pz = df[col_no_pz]
+    p0_label = _resolve_col(df, col_energy, 5)  # Energy column
+    px_label = _resolve_col(df, col_px, 6)      # px column
+    py_label = _resolve_col(df, col_py, 7)      # py column
+    pz_label = _resolve_col(df, col_pz, 8)      # pz column
+
+    p0 = df[p0_label]
+    px = df[px_label]
+    py = df[py_label]
+    pz = df[pz_label]
     df['m_inv'] = (p0**2 - (px**2 + py**2 + pz**2))
     return df
 
