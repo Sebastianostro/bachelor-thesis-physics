@@ -24,7 +24,7 @@ def calculate_rapidity(df, col_no_energy=5, col_no_beam=8)-> pd.DataFrame:
     return df
 
 ## Function to calculate invariant mass for data in a DataFrame
-def calculate_invariant_mass(df, col_no_energy=5, col_no_px=6, col_no_py=7, col_no_pz=8)-> pd.DataFrame:
+def calculate_invariant_mass(df, col_no_energy=None, col_no_px=None, col_no_py=None, col_no_pz=None)-> pd.DataFrame:
     '''
     Input: 
         "df" is the original Pandas DataFrame without invariant mass information
