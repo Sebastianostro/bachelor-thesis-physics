@@ -5,8 +5,8 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
-import re
-from typing import Optional, List, Dict, Any
+import re # for regular expressions
+from typing import Optional, List, Any
 import numpy as np
 import pandas as pd
 
@@ -56,6 +56,7 @@ _EVENT_RE = re.compile(r"#\s*event\s+(?P<event>\d+)\s+ensemble\s+(?P<ensemble>\d
 ## Dataclass to hold block context information
 @dataclass
 class BlockContext:
+    number: Optional[int] = None
     weight: Optional[float] = None
     partial: Optional[float] = None
     itype: Optional[int] = None
@@ -66,7 +67,7 @@ class BlockContext:
 def read_smash_table_with_blocks(path: Path) -> pd.DataFrame:
     """
     Liest SMASH/OSCAR-ähnliche Tabellen mit Kommentarzeilen und blockweisen Metadaten.
-    Hängt Block-Metadaten (weight/partial/type + optional event/ensemble) an jede Datenzeile.
+    Hängt Block-Metadaten (number/weight/partial/type + optional event/ensemble) an jede Datenzeile.
     """
     # column names and data rows
     colnames: List[str] = []
@@ -83,7 +84,7 @@ def read_smash_table_with_blocks(path: Path) -> pd.DataFrame:
             raise ValueError("Keine Spaltennamen gefunden (fehlende '#!' Headerzeile?).")
         rows.append(
             [0.0] * len(colnames)
-            + [0.0, 0.0, 0, ctx.event, 0] # default values for empty event
+            + [0, 0.0, 0.0, 0, ctx.event, 0] # default values for empty event (only one block)
         )
 
     # read the file line by line
@@ -113,6 +114,7 @@ def read_smash_table_with_blocks(path: Path) -> pd.DataFrame:
                 # it is treated as 'true' although not a real bool. if line does not match, m_int contains 'None'
                 m_int = _INTERACTION_RE.search(line)
                 if m_int:
+                    ctx.number = ctx.number + 1 if ctx.number is not None else 0
                     ctx.weight = float(m_int.group("weight"))
                     ctx.partial = float(m_int.group("partial"))
                     ctx.itype = int(m_int.group("type"))
@@ -152,7 +154,7 @@ def read_smash_table_with_blocks(path: Path) -> pd.DataFrame:
             # Append data row with current block context
             rows.append(
                 data.tolist()
-                + [ctx.weight, ctx.partial, ctx.itype, ctx.event, ctx.ensemble]
+                + [ctx.number, ctx.weight, ctx.partial, ctx.itype, ctx.event, ctx.ensemble]
             )
             had_data_in_event = True
     # After finishing reading, check if the last event had no data (because at least one event line was seen)
@@ -161,7 +163,7 @@ def read_smash_table_with_blocks(path: Path) -> pd.DataFrame:
 
     df = pd.DataFrame(
         rows,
-        columns=colnames + ["block_weight", "block_partial", "block_type", "event", "ensemble"],
+        columns=colnames + ["block_no", "block_weight", "block_partial", "block_type", "event", "ensemble"],
     )
     return df
 
@@ -176,5 +178,9 @@ if __name__ == "__main__":
     path_to_smash_data = io_smash.get_path_to_output_file(file_name, data_dir_name)
 
     df = read_smash_table_with_blocks(path_to_smash_data)
+    # Restrict to columns with time, momenta, pdg, and block metadata for brevity
+    df = df[["t", "p0", "px", "py", "pz", "pdg", "event", "block_no", "block_weight", "block_type"]]
+
+    # Print the first few rows of the DataFrame
     print(df)
 # End of script
