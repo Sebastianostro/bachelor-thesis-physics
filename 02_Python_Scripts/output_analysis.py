@@ -30,7 +30,7 @@ short_dilepton_data = io_smash.aggregate_dilepton_pairs(full_dilepton_data)
 # Enrich the DataFrame with PDG names, rapidity, and invariant mass
 #smash_data_enriched = sof.add_pdg_names(smash_data)
 #smash_data_enriched = sof.calculate_rapidity(smash_data)
-dilepton_data_enriched = sof.calculate_invariant_mass(short_dilepton_data, col_no_energy="p0", col_no_px="px", col_no_py="py", col_no_pz="pz")
+dilepton_data_enriched = sof.calculate_invariant_mass(short_dilepton_data, col_energy="p0", col_px="px", col_py="py", col_pz="pz")
 
 # Print the first few rows of the DataFrame
 print(dilepton_data_enriched)
