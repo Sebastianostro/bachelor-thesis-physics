@@ -34,8 +34,9 @@ short_dilepton_data = io_smash.aggregate_dilepton_pairs(full_dilepton_data)
 #smash_data_enriched = sof.calculate_rapidity(smash_data)
 dilepton_data_enriched = sof.calculate_invariant_mass(short_dilepton_data, col_energy="p0", col_px="px", col_py="py", col_pz="pz")
 
+dileptons = dilepton_data_enriched[dilepton_data_enriched["p_pdg_id"]==-1111]
 # Plot histogram of invariant mass for dileptons
-plt.hist(dilepton_data_enriched['m_inv'], bins=50, weights=dilepton_data_enriched["block_weight"], density=False)
+plt.hist(dileptons['m_inv'], bins=50, weights=dileptons["block_weight"], density=False)
 plt.title('Histogram of Invariant Mass for Dileptons')
 plt.xlabel('Invariant Mass (m_inv)')
 plt.ylabel(r'$\frac{dN}{dm_{inv}}$')
