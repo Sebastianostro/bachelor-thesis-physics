@@ -130,7 +130,7 @@ if __name__ == "__main__":
     df = pd.DataFrame(data)
 
     # Plot histogram for protons (PDG ID 2212)
-    # plot_histogram(df, pdg_id=2212, column_name='y', save_figure=False, file_name='Test_figure.png', bins=50)
-    plot_distribution(df, pdg_id=2212, column_name='y', save_figure=False, file_name='Test_figure.png', bins=50)
+    plot_histogram(df, pdg_id=2212, column_name='y', save_figure=False, file_name='Test_figure.png', bins=50)
+    #plot_distribution(df, pdg_id=2212, column_name='y', save_figure=False, file_name='Test_figure.png', bins=50)
 
 # End of script

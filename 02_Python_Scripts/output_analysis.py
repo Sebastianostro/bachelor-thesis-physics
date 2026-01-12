@@ -4,6 +4,8 @@
 ## Standard libraries
 import sys
 import plotting as plot
+import numpy as np
+from matplotlib import pyplot as plt
 ## Third-party libraries
 import pdg
 ## Custom libraries
@@ -32,13 +34,19 @@ short_dilepton_data = io_smash.aggregate_dilepton_pairs(full_dilepton_data)
 #smash_data_enriched = sof.calculate_rapidity(smash_data)
 dilepton_data_enriched = sof.calculate_invariant_mass(short_dilepton_data, col_energy="p0", col_px="px", col_py="py", col_pz="pz")
 
+# Plot histogram of invariant mass for dileptons
+plt.hist(dilepton_data_enriched['m_inv'], bins=50, weights=dilepton_data_enriched["block_weight"], density=False)
+plt.title('Histogram of Invariant Mass for Dileptons')
+plt.xlabel('Invariant Mass (m_inv)')
+plt.ylabel(r'$\frac{dN}{dm_{inv}}$')
+plt.grid(True)
+plt.show()
 # Print the first few rows of the DataFrame
-print(dilepton_data_enriched)
+#print(hist_data)
 
 # Calculate and print some basic statistics
 #sof.print_basic_statistics(smash_data_enriched)
-
 # Plot histograms of rapidity and invariant mass
-#plot.plot_distribution(smash_data_enriched, pdg_id=2212, column_name='y', bins=50)  # Proton rapidity
+#plot.plot_distribution(dilepton_data_enriched, pdg_id=2212, column_name='m_inv', bins=50)  # Proton rapidity
 # End of script
 
