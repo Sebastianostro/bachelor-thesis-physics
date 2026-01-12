@@ -268,7 +268,7 @@ def aggregate_dilepton_pairs(df: pd.DataFrame) -> pd.DataFrame:
 # MAIN SCRIPT
 # -----------------------------
 if __name__ == "__main__":
-    # Beispielhafte Nutzung des Dilepton-Dataclass
+    # Example usage of the functions defined above
     data_dir_name = 'Dilepton_Output_Std_Nevents_5_OutInt_NaN/' # Example data subdirectory
     file_name = 'Dileptons.oscar'  # Example SMASH output file name
     # Construct full path to the SMASH file
