@@ -16,7 +16,7 @@ import smash_output_functions as sof
 # CONSTANTS AND SETTINGS
 # -----------------------------
 # Define file information (paths, names)
-data_dir_name = 'Dilepton_Output_Std_Nevents_1000_OutInt_NaN/' # Example data subdirectory
+data_dir_name = 'Dilepton_Output_Std_Nevents_10000_OutInt_NaN/' # Example data subdirectory
 file_name = 'Dileptons.oscar'  # Example SMASH output file name
 
 # -----------------------------
