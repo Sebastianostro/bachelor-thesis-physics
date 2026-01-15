@@ -4,6 +4,8 @@
 import os
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
+import smash_output_functions as sof
 
 # Define directory to save figures
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -22,6 +24,77 @@ def get_save_path(filename: str) -> str:
     """
     _ensure_dir(figure_dir)
     return os.path.join(figure_dir, filename)
+
+## Function to plot histogram of invariant mass for dileptons including different decay channels
+def plot_hist_dilepton_invariant_mass(dilepton_data_input: pd.DataFrame, save_figure=False, file_name=None, bins=60):
+    # Preprocessing data to separate different pseudo-parent PDG IDs and map to names for legend
+    # First, filter only dilepton entries
+    dilepton_only = dilepton_data_input[dilepton_data_input["p_pdg_id"]==-1111]
+    # Get unique parent PDG IDs
+    p_parent_pdg_ids = dilepton_only["p_parent_pdg_id"].unique()
+    # Remove 0 (if present) which indicates no parent 
+    # (should not be the case but would also be useful to cover the potential case of mutliple "parents" (in-going particles) per dilepton block)
+    p_parent_pdg_ids = [id for id in p_parent_pdg_ids if id != 0]  # remove 0 if present
+    # Map PDG IDs to names
+    pdg_name_map = {id: sof.get_pdg_name(id) for id in p_parent_pdg_ids}
+
+    # Get total number of events for title
+    n_events = int(dilepton_data_input['event'].max()) + 1
+
+    bins = bins  # oder np.linspace(min,max,n)
+    plt.figure(figsize=(8,5))
+    # Define a function to fill small gaps in histogram data
+    # maximum number of empty bins to bridge linearly
+    def fill_small_gaps(counts, centers, max_gap_bins = 2):
+        mask = counts > 0
+        idx = np.where(mask)[0]
+        if idx.size < 2:
+            return counts
+        filled = counts.copy()
+        for left, right in zip(idx[:-1], idx[1:]):
+            gap = right - left - 1
+            if 0 < gap <= max_gap_bins:
+                gap_idx = np.arange(left + 1, right)
+                filled[gap_idx] = np.interp(centers[gap_idx], [centers[left], centers[right]], [counts[left], counts[right]],)
+        return filled
+
+    all_dileptons = dilepton_only
+    all_counts, all_edges = np.histogram(all_dileptons["m_inv"], bins=bins, weights=all_dileptons["block_weight"],)
+    all_centers = 0.5 * (all_edges[1:] + all_edges[:-1])
+    all_counts = fill_small_gaps(all_counts, all_centers, max_gap_bins=2)
+    plt.plot(
+        all_centers,
+        all_counts,
+        color="black",
+        linewidth=2.0,
+        alpha=0.9,
+        label="all dileptons",
+    )
+
+    for id in p_parent_pdg_ids:
+        sub = dilepton_data_input[dilepton_data_input["p_parent_pdg_id"] == id]
+        counts, edges = np.histogram(sub["m_inv"], bins=bins, weights=sub["block_weight"],)
+        centers = 0.5 * (edges[1:] + edges[:-1])
+        counts = fill_small_gaps(counts, centers, max_gap_bins=2)
+        plt.plot(
+            centers,
+            counts,
+            linewidth=1.5,
+            alpha=0.9,
+            label=pdg_name_map.get(id, str(id)),
+        )
+    plt.yscale("log")
+    plt.ylim(bottom=0)
+    plt.xscale("linear")
+    plt.xlim(0, 0.7)
+    plt.xlabel("Invariant Mass $m_{inv}$")
+    plt.ylabel("Counts")
+    plt.title(f"Dilepton invariant mass per decay channel ({n_events} events)")
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.show()
+
 
 # Function to plot histogram of a given distribution for a specific PDG ID
 def plot_histogram(df, pdg_id, column_name, save_figure=False, file_name=None, density=False, bins=50):
