@@ -2,15 +2,13 @@
 # IMPORTS
 # -----------------------------
 ## Standard libraries
-import sys
-import plotting as plot
-import numpy as np
-from matplotlib import pyplot as plt
+
 ## Third-party libraries
 import pdg
 ## Custom libraries
 import io_smash
 import smash_output_functions as sof
+import plotting as plot
 
 # -----------------------------
 # CONSTANTS AND SETTINGS
