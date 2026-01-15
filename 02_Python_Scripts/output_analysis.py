@@ -16,7 +16,7 @@ import smash_output_functions as sof
 # CONSTANTS AND SETTINGS
 # -----------------------------
 # Define file information (paths, names)
-data_dir_name = 'Dilepton_Output_Std_Nevents_1000_OutInt_NaN/' # Example data subdirectory
+data_dir_name = 'Dilepton_Output_Std_Nevents_10000_OutInt_NaN/' # Example data subdirectory
 file_name = 'Dileptons.oscar'  # Example SMASH output file name
 
 # -----------------------------
@@ -34,11 +34,11 @@ short_dilepton_data = io_smash.aggregate_dilepton_pairs(full_dilepton_data)
 #smash_data_enriched = sof.calculate_rapidity(smash_data)
 dilepton_data_enriched = sof.calculate_invariant_mass(short_dilepton_data, col_energy="p0", col_px="px", col_py="py", col_pz="pz")
 dilepton_data_enriched = sof.enrich_dilepton_with_parent(dilepton_data_enriched)
+dilepton_data_enriched = sof.adjust_shining_weights(dilepton_data_enriched)
 
-#plot.plot_hist_dilepton_invariant_mass(dilepton_data_enriched)
+plot.plot_hist_dilepton_invariant_mass(dilepton_data_enriched)
 
 # Print the first few rows of the DataFrame
-print(dilepton_data_enriched.tail())
 
 # Calculate and print some basic statistics
 #sof.print_basic_statistics(smash_data_enriched)

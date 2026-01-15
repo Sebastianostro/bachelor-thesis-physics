@@ -65,7 +65,8 @@ def calculate_invariant_mass(df, col_energy=None, col_px=None, col_py=None, col_
     px = df[px_label]
     py = df[py_label]
     pz = df[pz_label]
-    df['m_inv'] = np.sqrt(p0**2 - (px**2 + py**2 + pz**2))
+    m2 = p0**2 - (px**2 + py**2 + pz**2)
+    df['m_inv'] = np.sqrt(np.clip(m2, 0, None))
     return df
 
 ## Function to get PDG name from PDG ID
@@ -84,25 +85,34 @@ def get_pdg_name(pdg_id, long_name = False)-> str:
         return "Unknown particle"
 
 ## Function to add PDG names to the DataFrame based on PDG IDs
-def add_pdg_names(df, pdg_column=9, long_name = False)-> pd.DataFrame:
+def add_pdg_names(df, pdg_column=None, long_name = False)-> pd.DataFrame:
     '''
-    Input:
-        "df" is the DataFrame without PDG names
-        "pdg_column" is the column number that contains the PDG IDs (default value is "9" in SMASH output)
-    Output:
-        DataFrame enriched by a column containing the PDG names (named 'pdg_name')
+    Function to enrich (in-place) input dataframe by adding a new column "pdg_name",
+    which contains the name to the corresponding PDG ID.
+    
+    :param df: Pandas DataFrame expected to have some column containing a PDG ID.
+    :type df: pd.DataFrame
+    :param pdg_column: Column description containing the PDG ID (can be string label or position number)
+    :type pdg_column: str or int
+    :param (optional, default = False) long_name: Boolean switch to show long or short name for PDG ID. 
+    If True, long name is shown
+    :type long_name: Bool 
+    :return: DataFrame (in-place) enriched with a column containing the PDG names (named 'pdg_name').
+    :rtype: pd.DataFrame
     '''
+    pdg_id_label = _resolve_col(df, pdg_column, 9)
     # Add PDG names to the DataFrame
     ## Create wrapper function
     get_pdg_name_wrap = partial(get_pdg_name, long_name=long_name)
     ## Apply wrapper function to the specified PDG ID column
-    df['pdg_name'] = df[pdg_column].apply(get_pdg_name_wrap)
+    df['pdg_name'] = df[pdg_id_label].apply(get_pdg_name_wrap)
+
     return df
 
 ## Function for additional dilepton processing (adding "parent PDG ID" column) 
 def enrich_dilepton_with_parent(df: pd.DataFrame) -> pd.DataFrame:
     '''
-    Function to enrich dataframe containing dilepton data by adding a new column "p_parent_pdg_id" (pseudo-parent PDG ID),
+    Function to enrich (in-place) input dataframe containing dilepton data by adding a new column "p_parent_pdg_id" (pseudo-parent PDG ID),
     which contains the PDG ID of the "in" particle of the corresponding block for each dilepton (p_pdg_id == -1111).
     
     :param df: Pandas DataFrame containing dilepton data expected to have columns "event", "block_no", "io_role", and "p_pdg_id".
@@ -119,7 +129,24 @@ def enrich_dilepton_with_parent(df: pd.DataFrame) -> pd.DataFrame:
 
     return df
 
-## Function to adjust block weights for number of overall events
+## Function to adjust shining weights for number of overall events
+def adjust_shining_weights(input_data: pd.DataFrame)-> pd.DataFrame:
+    '''
+    Function adjusts shining weights in the dataset for total number of events in this simulation run
+    
+    :param input_data: Expected to be a Pandas DataFrame with at least the columns "event" and "block_weight"
+    :type input_data: pd.DataFrame
+    :return: Pandas DataFrame with an additional column called "block_weight_adj" that contains the event-adjusted shining weight to be used in histogram 
+    :rtype: DataFrame
+    '''
+    # Get the number of events for this simulation run
+    no_events = int(input_data["event"].max()) + 1
+    # New column created to adjust shining weights for number of events 
+    input_data["block_weight_adj"] = input_data["block_weight"] / no_events
+    # Apply OSCAR dtypes again to ensure correct types
+    input_data = io_smash.apply_oscar_dtypes(input_data)
+
+    return input_data
 
 ## Function to print basic statistics of the DataFrame
 def print_basic_statistics(df):

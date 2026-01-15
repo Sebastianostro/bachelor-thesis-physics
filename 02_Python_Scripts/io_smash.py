@@ -45,6 +45,7 @@ OSCAR_DATA_TYPES = {
     "weight": "float64",
     "partial": "float64",
     "p_parent_pdg_id": "int32",
+    "block_weight_adj": "float64",
 }
 
 
