@@ -2,6 +2,7 @@
 
 # Import necessary libraries
 import numpy as np
+from functools import partial
 import pdg
 import pandas as pd
 
@@ -91,7 +92,10 @@ def add_pdg_names(df, pdg_column=9, long_name = False)-> pd.DataFrame:
         DataFrame enriched by a column containing the PDG names (named 'pdg_name')
     '''
     # Add PDG names to the DataFrame
-    df['pdg_name'] = df[pdg_column].apply(get_pdg_name)
+    ## Create wrapper function
+    get_pdg_name_wrap = partial(get_pdg_name, long_name=long_name)
+    ## Apply wrapper function to the specified PDG ID column
+    df['pdg_name'] = df[pdg_column].apply(get_pdg_name_wrap)
     return df
 
 ## Function to print basic statistics of the DataFrame
@@ -121,5 +125,5 @@ def print_basic_statistics(df):
 if __name__ == "__main__":
     # Example usage and test of functions
     id = input("Enter PDG ID: ")
-    print(f"PDG name for entered PDG ID {id}: ", get_pdg_name(int(id)))
+    print(f"PDG name for entered PDG ID {id}: ", get_pdg_name(int(id), long_name=True))
 # End of script
