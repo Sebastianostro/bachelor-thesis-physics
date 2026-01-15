@@ -65,7 +65,7 @@ def calculate_invariant_mass(df, col_energy=None, col_px=None, col_py=None, col_
     px = df[px_label]
     py = df[py_label]
     pz = df[pz_label]
-    df['m_inv'] = (p0**2 - (px**2 + py**2 + pz**2))
+    df['m_inv'] = np.sqrt(p0**2 - (px**2 + py**2 + pz**2))
     return df
 
 ## Function to get PDG name from PDG ID
@@ -118,6 +118,8 @@ def enrich_dilepton_with_parent(df: pd.DataFrame) -> pd.DataFrame:
     df = io_smash.apply_oscar_dtypes(df)
 
     return df
+
+## Function to adjust block weights for number of overall events
 
 ## Function to print basic statistics of the DataFrame
 def print_basic_statistics(df):
