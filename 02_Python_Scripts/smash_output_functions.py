@@ -8,7 +8,8 @@ import pandas as pd
 # Define constants if needed (currently none)
 
 # Define functions
-## Function to resolve column specification
+## Function to resolve column specification to actual column label in DataFrame to handle different input types in functions,
+### e.g., string labels of columns or integer positions
 def _resolve_col(df, col, default):
     if col is None:
         col = default
@@ -66,18 +67,22 @@ def calculate_invariant_mass(df, col_energy=None, col_px=None, col_py=None, col_
     return df
 
 ## Function to get PDG name from PDG ID
-def get_pdg_name(pdg_id)-> str:
+def get_pdg_name(pdg_id, long_name = False)-> str:
     # Connect to PDG API
     api = pdg.connect()
 
     particle = api.get_particle_by_mcid(int(pdg_id))
     if particle is not None:
-        return str(particle)
+        if long_name:
+            return str(particle)
+        else:
+        # Keep only the part after the colon (particle short name).
+            return str(particle).split(":", 1)[-1].strip()
     else:
         return "Unknown particle"
 
 ## Function to add PDG names to the DataFrame based on PDG IDs
-def add_pdg_names(df, pdg_column=9)-> pd.DataFrame:
+def add_pdg_names(df, pdg_column=9, long_name = False)-> pd.DataFrame:
     '''
     Input:
         "df" is the DataFrame without PDG names
