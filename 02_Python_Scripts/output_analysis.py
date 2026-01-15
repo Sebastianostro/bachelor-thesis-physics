@@ -36,6 +36,6 @@ dilepton_data_enriched = sof.calculate_invariant_mass(short_dilepton_data, col_e
 dilepton_data_enriched = sof.enrich_dilepton_with_parent(dilepton_data_enriched)
 dilepton_data_enriched = sof.adjust_shining_weights(dilepton_data_enriched)
 
-plot.plot_hist_dilepton_invariant_mass(dilepton_data_enriched, in_max_gap_bins=4, in_bins=40)
+plot.plot_hist_dilepton_invariant_mass(dilepton_data_enriched, save_figure=True, file_name="Hist_np_1.5GeV_10000events.png", in_max_gap_bins=4, in_bins=40)
 
 # End of script
