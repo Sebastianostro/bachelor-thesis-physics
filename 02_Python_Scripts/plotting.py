@@ -88,7 +88,8 @@ def plot_hist_dilepton_invariant_mass(dilepton_data_input: pd.DataFrame, save_fi
     plt.xscale("linear")
     plt.xlim(0, 0.7)
     plt.xlabel("Invariant Mass $m_{inv}$")
-    plt.ylabel("Counts")
+    y_label = r'$\frac{dN}{d m_{inv}}$'
+    plt.ylabel(y_label)
     plt.title(f"Dilepton invariant mass per decay channel ({n_events} events)")
     plt.legend()
     plt.grid(True, alpha=0.3)
