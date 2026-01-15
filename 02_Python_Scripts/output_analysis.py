@@ -36,12 +36,6 @@ dilepton_data_enriched = sof.calculate_invariant_mass(short_dilepton_data, col_e
 dilepton_data_enriched = sof.enrich_dilepton_with_parent(dilepton_data_enriched)
 dilepton_data_enriched = sof.adjust_shining_weights(dilepton_data_enriched)
 
-plot.plot_hist_dilepton_invariant_mass(dilepton_data_enriched)
+plot.plot_hist_dilepton_invariant_mass(dilepton_data_enriched, in_max_gap_bins=4, in_bins=40)
 
-# Print the first few rows of the DataFrame
-
-# Calculate and print some basic statistics
-#sof.print_basic_statistics(smash_data_enriched)
-# Plot histograms of rapidity and invariant mass
-#plot.plot_distribution(dilepton_data_enriched, pdg_id=2212, column_name='m_inv', bins=50)  # Proton rapidity
 # End of script
