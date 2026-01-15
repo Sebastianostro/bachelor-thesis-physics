@@ -44,7 +44,7 @@ OSCAR_DATA_TYPES = {
     "strangeness": "int8",
     "weight": "float64",
     "partial": "float64",
-    "paired_in_pdg_id": "int32",
+    "p_parent_pdg_id": "int32",
 }
 
 

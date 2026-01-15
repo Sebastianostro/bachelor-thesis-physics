@@ -33,24 +33,15 @@ short_dilepton_data = io_smash.aggregate_dilepton_pairs(full_dilepton_data)
 #smash_data_enriched = sof.add_pdg_names(smash_data)
 #smash_data_enriched = sof.calculate_rapidity(smash_data)
 dilepton_data_enriched = sof.calculate_invariant_mass(short_dilepton_data, col_energy="p0", col_px="px", col_py="py", col_pz="pz")
+dilepton_data_enriched = sof.enrich_dilepton_with_parent(dilepton_data_enriched)
 
-#print(dilepton_data_enriched)
 
-df = dilepton_data_enriched
+dilepton_only = dilepton_data_enriched[dilepton_data_enriched["p_pdg_id"]==-1111]
 
-# pro Block den "in"-p_pdg_id holen (falls genau eine Zeile)
-in_pdg_per_block = (df["p_pdg_id"].where(df["io_role"] == "in").groupby([df["event"], df["block_no"]]).transform("first"))
-
-# neue Spalte: nur bei -1111 setzen, sonst 0
-df["paired_in_pdg_id"] = np.where(df["p_pdg_id"] == -1111, in_pdg_per_block, 0)
-df = io_smash.apply_oscar_dtypes(df)
-
-dileptons = df[df["p_pdg_id"]==-1111]
-#print(dileptons)
 # Plot histogram of invariant mass for dileptons
 
 # Optional: nur bestimmte IDs plotten
-pdg_ids = sorted(df["paired_in_pdg_id"].unique())
+pdg_ids = sorted(dilepton_only["p_parent_pdg_id"].unique())
 pdg_ids = [pdg_id for pdg_id in pdg_ids if pdg_id != 0]  # remove 0 if present
 pdg_name_map = {pdg_id: sof.get_pdg_name(pdg_id) for pdg_id in pdg_ids}
 
@@ -76,7 +67,7 @@ def fill_small_gaps(counts, centers, max_gap_bins):
             )
     return filled
 
-all_dileptons = df[df["p_pdg_id"] == -1111]
+all_dileptons = dilepton_only
 all_counts, all_edges = np.histogram(
     all_dileptons["m_inv"],
     bins=bins,
@@ -94,7 +85,7 @@ plt.plot(
 )
 
 for pdg_id in pdg_ids:
-    sub = df[df["paired_in_pdg_id"] == pdg_id]
+    sub = dilepton_data_enriched[dilepton_data_enriched["p_parent_pdg_id"] == pdg_id]
     counts, edges = np.histogram(
         sub["m_inv"],
         bins=bins,
@@ -115,21 +106,12 @@ plt.xscale("linear")
 plt.xlim(0, 0.7)
 plt.xlabel("Invariant Mass $m_{inv}$")
 plt.ylabel("Counts")
-plt.title("m_inv pro p_pdg_id")
+plt.title("Dilepton invariant mass per decay channel (10,000 events)")
 plt.legend()
 plt.grid(True, alpha=0.3)
 plt.tight_layout()
 plt.show()
 
-
-
-""" plt.hist(dileptons['m_inv'], bins=50, weights=dileptons["block_weight"], density=False)
-plt.title('Histogram of Invariant Mass for Dileptons')
-plt.xlabel('Invariant Mass (m_inv)')
-plt.ylabel(r'$\frac{dN}{dm_{inv}}$')
-plt.grid(True)
-plt.show()
- """
 # Print the first few rows of the DataFrame
 #print(hist_data)
 

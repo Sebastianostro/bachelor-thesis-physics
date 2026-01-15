@@ -5,6 +5,7 @@ import numpy as np
 from functools import partial
 import pdg
 import pandas as pd
+import io_smash
 
 # Define constants if needed (currently none)
 
@@ -96,6 +97,26 @@ def add_pdg_names(df, pdg_column=9, long_name = False)-> pd.DataFrame:
     get_pdg_name_wrap = partial(get_pdg_name, long_name=long_name)
     ## Apply wrapper function to the specified PDG ID column
     df['pdg_name'] = df[pdg_column].apply(get_pdg_name_wrap)
+    return df
+
+## Function for additional dilepton processing (adding "parent PDG ID" column) 
+def enrich_dilepton_with_parent(df: pd.DataFrame) -> pd.DataFrame:
+    '''
+    Function to enrich dataframe containing dilepton data by adding a new column "p_parent_pdg_id" (pseudo-parent PDG ID),
+    which contains the PDG ID of the "in" particle of the corresponding block for each dilepton (p_pdg_id == -1111).
+    
+    :param df: Pandas DataFrame containing dilepton data expected to have columns "event", "block_no", "io_role", and "p_pdg_id".
+    :type df: pd.DataFrame
+    :return: Pandas DataFrame enriched with the new column "p_parent_pdg_id".
+    :rtype: pd.DataFrame
+    '''
+    # Get the "in" particle PDG ID for each combination of event and block number, storing only unique values
+    in_pdg_per_block = (df["p_pdg_id"].where(df["io_role"] == "in").groupby([df["event"], df["block_no"]]).transform("first"))
+    # New column created: only properly set for dileptons (-1111), otherwise 0
+    df["p_parent_pdg_id"] = np.where(df["p_pdg_id"] == -1111, in_pdg_per_block, 0)
+    # Apply OSCAR dtypes again to ensure correct types
+    df = io_smash.apply_oscar_dtypes(df)
+
     return df
 
 ## Function to print basic statistics of the DataFrame
