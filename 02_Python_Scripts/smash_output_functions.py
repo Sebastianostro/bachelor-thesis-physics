@@ -129,7 +129,7 @@ def enrich_dilepton_with_parent(df: pd.DataFrame) -> pd.DataFrame:
 
     return df
 
-## Function to adjust shining weights for number of overall events
+## (To be deleted as not used) Function to adjust shining weights for number of overall events
 def adjust_shining_weights(input_data: pd.DataFrame)-> pd.DataFrame:
     '''
     Function adjusts shining weights in the dataset for total number of events in this simulation run
