@@ -94,6 +94,7 @@ def plot_hist_dilepton_invariant_mass(dilepton_data_input: pd.DataFrame, save_fi
     plt.legend()
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
+
     # Save
     if save_figure:
         if file_name is None:
