@@ -3,12 +3,15 @@
 #SBATCH --nodes=1
 #SBATCH --output=./slurm_files/slurm_job_%j.out
 #SBATCH --error=./slurm_files/slurm_job_%j.err
-#SBATCH --partition=main
-#SBATCH --time=0-04:00:00
+#SBATCH --partition=debug
+#SBATCH --time=0-00:30:00
 #SBATCH --mail-user=sebastian.ostrowski@hotmail.com --mail-type=ALL
 
-# Export working directory 
+# Export working directory
 export SLURM_WORKING_DIR=$LH
+if [ -z "$SLURM_WORKING_DIR" ]; then
+    SLURM_WORKING_DIR=${SLURM_SUBMIT_DIR:-$PWD}
+fi
 
 # Set config file, decaymode file and container paths for SMASH
 CONFIG_FILE=$SLURM_WORKING_DIR/smash_configs/config_dilepton_standard_oscar.yaml
@@ -17,9 +20,40 @@ CONTAINER=/lustre/hyihp/AG-Elfner/Containers/Production/smash-3.3-max.sif
 
 # Set some run_id variables
 RUN_ID=Dilepton_Output_Std_Nevents_5_OutInt_NaN
+OUTPUT_ROOT=$SLURM_WORKING_DIR/smash_outputs
+
+usage() {
+    echo "Usage: $0 [-c config.yaml] [-d decay.txt] [-C container.sif] [-o output_root] [-r run_id] [-- smash_args]"
+}
+
+while getopts ":c:d:C:o:r:h" opt; do
+    case "$opt" in
+        c) CONFIG_FILE=$OPTARG ;;
+        d) DECAY_FILE=$OPTARG ;;
+        C) CONTAINER=$OPTARG ;;
+        o) OUTPUT_ROOT=$OPTARG ;;
+        r) RUN_ID=$OPTARG ;;
+        h)
+            usage
+            exit 0
+            ;;
+        \?)
+            echo "Unknown option: -$OPTARG"
+            usage
+            exit 2
+            ;;
+        :)
+            echo "Option -$OPTARG requires an argument."
+            usage
+            exit 2
+            ;;
+    esac
+done
+shift $((OPTIND - 1))
+SMASH_EXTRA_ARGS="$@"
 
 # Create output directory for SMASH if it doesn't exist
-output_dir_smash=$SLURM_WORKING_DIR/smash_outputs
+output_dir_smash=$OUTPUT_ROOT
 
 if [ ! -d $output_dir_smash ]; then
     mkdir -p $output_dir_smash
@@ -29,7 +63,7 @@ fi
 echo "Running SMASH with config file: $CONFIG_FILE, decay_file: $DECAY_FILE and container: $CONTAINER"
 
 # set specific config with '-i', command line option with '-c', and so on
-singularity exec $CONTAINER smash -i $CONFIG_FILE -d $DECAY_FILE -o $output_dir_smash/$RUN_ID/ -n
+singularity exec $CONTAINER smash -i $CONFIG_FILE -d $DECAY_FILE -o $output_dir_smash/$RUN_ID/ -n $SMASH_EXTRA_ARGS
 
 # wait for the smash processes to finish
 wait
