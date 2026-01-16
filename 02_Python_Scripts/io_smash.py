@@ -48,7 +48,6 @@ OSCAR_DATA_TYPES = {
     "block_weight_adj": "float64",
 }
 
-
 # -----------------------------
 # CLASSES AND FUNCTIONS
 # -----------------------------
@@ -264,6 +263,8 @@ def aggregate_dilepton_pairs(df: pd.DataFrame) -> pd.DataFrame:
     }).sort_values(by=["event", "t", "block_no"]).reset_index()
     # Apply data types
     df_final = apply_oscar_dtypes(df_aggregated)
+    
+    # Return the final aggregated DataFrame
     return df_final
 
 # -----------------------------
