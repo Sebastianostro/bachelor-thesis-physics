@@ -59,7 +59,7 @@ def plot_hist_dilepton_invariant_mass(dilepton_data_input: pd.DataFrame, save_fi
         return filled
 
     all_dileptons = dilepton_only
-    all_counts, all_edges = np.histogram(all_dileptons["m_inv"], bins=bins, weights=all_dileptons["block_weight_adj"],)
+    all_counts, all_edges = np.histogram(all_dileptons["m_inv"], bins=bins, weights=all_dileptons["block_weight"],)
     all_centers = 0.5 * (all_edges[1:] + all_edges[:-1])
     all_counts = fill_small_gaps(all_counts, all_centers, max_gap_bins=in_max_gap_bins)
     plt.plot(
@@ -73,7 +73,7 @@ def plot_hist_dilepton_invariant_mass(dilepton_data_input: pd.DataFrame, save_fi
 
     for id in p_parent_pdg_ids:
         sub = dilepton_data_input[dilepton_data_input["p_parent_pdg_id"] == id]
-        counts, edges = np.histogram(sub["m_inv"], bins=bins, weights=sub["block_weight_adj"],)
+        counts, edges = np.histogram(sub["m_inv"], bins=bins, weights=sub["block_weight"],)
         centers = 0.5 * (edges[1:] + edges[:-1])
         counts = fill_small_gaps(counts, centers, max_gap_bins=in_max_gap_bins)
         plt.plot(
