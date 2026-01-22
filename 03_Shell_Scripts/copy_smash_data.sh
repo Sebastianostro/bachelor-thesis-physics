@@ -17,7 +17,7 @@ DRY_RUN=false
 
 # Mehrere Ordner: einfach Liste pflegen
 FOLDERS_TO_COPY=(
-  "Dilepton_Out_Std_Nevents_5_OutInt_NaN"
+  "Dilepton_Out_Std_Nevents_1m_OutInt_NaN"
 )
 
 # -----------------------------

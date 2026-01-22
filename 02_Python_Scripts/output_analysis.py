@@ -16,28 +16,30 @@ import plotting as plot
 # -----------------------------
 # Define file information (paths, names)
 BASE_PATH_TO_DATA = '/home/sebastian/dev/python/bachelor-thesis-physics/05_Files_from_Virgo/'
-DATA_DIR_NAME = 'Dilepton_Out_Std_Nevents_5_OutInt_NaN/' # Example data subdirectory
+DATA_DIR_NAME = 'Dilepton_Out_Std_Nevents_1m_OutInt_NaN/' # Example data subdirectory
 FILE_NAME = 'Dileptons.oscar'  # Example SMASH output file name
-
+SINGLE_RUN = True  # Whether to process a single run or aggregate multiple runs
 # -----------------------------
 # MAIN SCRIPT
 # -----------------------------
-# Construct full path to the SMASH file
-#path_to_smash_data = qol.get_path_to_output_file(file_name=FILE_NAME, folder_name=DATA_DIR_NAME, root_path=BASE_PATH_TO_DATA)
-#full_dilepton_data = io_smash.read_smash_dilepton_output(path_to_smash_data)
-#short_dilepton_data = io_smash.aggregate_dilepton_pairs(full_dilepton_data)
-dilepton_data_enriched = sof.aggregate_runs(root_dir=BASE_PATH_TO_DATA, data_dir=DATA_DIR_NAME, filename=FILE_NAME)
-# Enrich the DataFrame with PDG names, rapidity, and invariant mass
-#smash_data_enriched = sof.calculate_rapidity(smash_data)
-#dilepton_data_enriched = sof.calculate_invariant_mass(short_dilepton_data, col_energy="p0", col_px="px", col_py="py", col_pz="pz")
-#dilepton_data_enriched = sof.enrich_dilepton_with_parent(dilepton_data_enriched)
-#dilepton_data_enriched = sof.adjust_shining_weights(dilepton_data_enriched)
+if SINGLE_RUN:
+    # Process single run
+    path_to_smash_data = qol.get_path_to_output_file(file_name=FILE_NAME, folder_name=DATA_DIR_NAME, root_path=BASE_PATH_TO_DATA)
+    smash_data = io_smash.read_smash_dilepton_output(path_to_smash_data)
+    short_dilepton_data = io_smash.aggregate_dilepton_pairs(smash_data)   
+    dilepton_data_enriched = sof.calculate_invariant_mass(short_dilepton_data, col_energy="p0", col_px="px", col_py="py", col_pz="pz")
+    dilepton_data_enriched = sof.enrich_dilepton_with_parent(dilepton_data_enriched)
+    dilepton_data_enriched = sof.adjust_shining_weights(dilepton_data_enriched)
+else:
+    dilepton_data_enriched = sof.aggregate_runs(root_dir=BASE_PATH_TO_DATA, data_dir=DATA_DIR_NAME, filename=FILE_NAME)
 
-print(dilepton_data_enriched)
+#print(dilepton_data_enriched)
 #print((dilepton_data_enriched["p_pdg_id"]==-1111))
 
 #print((dilepton_data_enriched["p_pdg_id"]==-1111).sum())
-#bin_struct = np.linspace(0,0.7,36)
-#plot.plot_hist_dilepton_invariant_mass(dilepton_data_enriched, bin_edges= bin_struct, save_figure=True, file_name="Hist_np_1.5GeV_10000events.png")
+bin_struct = np.linspace(0,0.7,36)
+plot.plot_hist_dilepton_invariant_mass(dilepton_data_enriched, 
+                                       bin_edges= bin_struct, 
+                                       save_figure=True, file_name="Hist_np_1.5GeV_1m_events.png")
 
 # End of script

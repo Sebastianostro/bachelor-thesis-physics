@@ -64,7 +64,7 @@ def plot_hist_dilepton_invariant_mass(dilepton_data_input: pd.DataFrame, bin_edg
     n_events = int(dilepton_data_input['event'].max()) + 1
 
     col_bin_axis = "m_inv"
-    col_weight = "block_weight"
+    col_weight = "block_weight_adj"
     # Start plotting
     fig, ax = plt.subplots(figsize=(8,5))
     # Get data for all dileptons
