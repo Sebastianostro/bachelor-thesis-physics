@@ -39,7 +39,10 @@ def fill_small_gaps(counts, centers, max_gap_bins):
             filled[gap_idx] = np.interp(centers[gap_idx], [centers[left], centers[right]], [counts[left], counts[right]],)
     return filled
 
-def _plot_dilepton_hist_line(ax, df, bin_edges, label, color=None, linewidth=1.5, alpha=0.9, gap_filling=False, max_gap_bins=2):
+def _plot_dilepton_hist_line(ax, df, bin_axis, weight, bin_edges,
+                             label, color=None, linewidth=1.5, alpha=0.9,
+                             gap_filling=False, max_gap_bins=2):
+    p0_label = sof._resolve_col(df, bin_axis, 5)
     counts, edges = np.histogram(df["m_inv"], bins=bin_edges, weights=df["block_weight"],)
     centers = 0.5 * (edges[1:] + edges[:-1])
     if gap_filling:

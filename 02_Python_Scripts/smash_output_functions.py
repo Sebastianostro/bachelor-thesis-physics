@@ -12,7 +12,7 @@ import io_smash
 # Define functions
 ## Function to resolve column specification to actual column label in DataFrame to handle different input types in functions,
 ### e.g., string labels of columns or integer positions
-def _resolve_col(df, col, default):
+def resolve_col(df, col, default):
     if col is None:
         col = default
     # String -> direct label
@@ -35,8 +35,8 @@ def calculate_rapidity(df, col_energy=None, col_beam=None)-> pd.DataFrame:
     Output: 
         Original DataFrame enriched by a column containing the rapidity values (named 'y')
     '''
-    p0_label = _resolve_col(df, col_energy, 5)  # Energy column
-    pz_label = _resolve_col(df, col_beam, 8)  # pz column
+    p0_label = resolve_col(df, col_energy, 5)  # Energy column
+    pz_label = resolve_col(df, col_beam, 8)  # pz column
     
     p0 = df[p0_label]
     pz = df[pz_label]
@@ -56,10 +56,10 @@ def calculate_invariant_mass(df, col_energy=None, col_px=None, col_py=None, col_
     Output: 
         Original DataFrame enriched by a column containing the invariant mass values (named 'm_inv')
     '''
-    p0_label = _resolve_col(df, col_energy, 5)  # Energy column
-    px_label = _resolve_col(df, col_px, 6)      # px column
-    py_label = _resolve_col(df, col_py, 7)      # py column
-    pz_label = _resolve_col(df, col_pz, 8)      # pz column
+    p0_label = resolve_col(df, col_energy, 5)  # Energy column
+    px_label = resolve_col(df, col_px, 6)      # px column
+    py_label = resolve_col(df, col_py, 7)      # py column
+    pz_label = resolve_col(df, col_pz, 8)      # pz column
 
     p0 = df[p0_label]
     px = df[px_label]
@@ -100,7 +100,7 @@ def add_pdg_names(df, pdg_column=None, long_name = False)-> pd.DataFrame:
     :return: DataFrame (in-place) enriched with a column containing the PDG names (named 'pdg_name').
     :rtype: pd.DataFrame
     '''
-    pdg_id_label = _resolve_col(df, pdg_column, 9)
+    pdg_id_label = resolve_col(df, pdg_column, 9)
     # Add PDG names to the DataFrame
     ## Create wrapper function
     get_pdg_name_wrap = partial(get_pdg_name, long_name=long_name)
@@ -129,7 +129,7 @@ def enrich_dilepton_with_parent(df: pd.DataFrame) -> pd.DataFrame:
 
     return df
 
-## (To be deleted as not used) Function to adjust shining weights for number of overall events
+## Function to adjust shining weights for number of dilepton events
 def adjust_shining_weights(input_data: pd.DataFrame)-> pd.DataFrame:
     '''
     Function adjusts shining weights in the dataset for total number of dilepton events in this data set.

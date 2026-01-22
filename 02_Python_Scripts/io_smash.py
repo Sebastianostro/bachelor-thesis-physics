@@ -10,6 +10,9 @@ import re # for regular expressions
 from typing import Optional, List, Any
 import pandas as pd
 import numpy as np
+## Third-party libraries
+## Custom libraries
+import quality_of_life as qol
 
 # -----------------------------
 # CONSTANTS AND SETTINGS
@@ -65,19 +68,6 @@ class BlockContext:
     in_left: int = 0
     out_left: int = 0
 
-## Function to get output file path
-def get_path_to_output_file(file_name, folder_name, base_path=BASE_PATH_TO_DATA)-> Path:
-    # Define file information (paths, names)
-    path_to_data = base_path  # Your SMASH data path (top level)
-    path_to_data_folder = folder_name # Data subdirectory (subfolder for specific simulations)
-    path_to_smash_file = Path(path_to_data) / path_to_data_folder / file_name  # full path to the SMASH file
-
-    # Check file exists before attempting to read
-    if not path_to_smash_file.exists():
-        print(f"Datei nicht gefunden: {path_to_smash_file}")
-        sys.exit(1)
-    return path_to_smash_file
-
 ## Function to read SMASH particle_list file in .oscar format
 def read_smash_particle_file(file_path)-> pd.DataFrame:
     '''
@@ -104,12 +94,6 @@ def read_smash_particle_file(file_path)-> pd.DataFrame:
     except Exception as e:
         print(f"Error reading file: {e}")
         sys.exit(1)
-
-## Function to apply OSCAR data types to DataFrame columns
-def apply_oscar_dtypes(df: pd.DataFrame) -> pd.DataFrame:
-    """Apply OSCAR_DATA_TYPES to columns that exist in df."""
-    dtype_map = {k: v for k, v in OSCAR_DATA_TYPES.items() if k in df.columns}
-    return df.astype(dtype_map)
 
 ## Regular expressions for parsing block metadata
 _INTERACTION_RE = re.compile(
@@ -262,7 +246,7 @@ def aggregate_dilepton_pairs(df: pd.DataFrame) -> pd.DataFrame:
         "pz": "sum"
     }).sort_values(by=["event", "t", "block_no"]).reset_index()
     # Apply data types
-    df_final = apply_oscar_dtypes(df_aggregated)
+    df_final = qol.apply_data_types(df_aggregated, OSCAR_DATA_TYPES)
     
     # Return the final aggregated DataFrame
     return df_final
@@ -271,11 +255,12 @@ def aggregate_dilepton_pairs(df: pd.DataFrame) -> pd.DataFrame:
 # MAIN SCRIPT
 # -----------------------------
 if __name__ == "__main__":
+    import quality_of_life as qol
     # Example usage of the functions defined above
     data_dir_name = 'Dilepton_Output_Std_Nevents_5_OutInt_NaN/' # Example data subdirectory
     file_name = 'Dileptons.oscar'  # Example SMASH output file name
     # Construct full path to the SMASH file
-    path_to_smash_data = get_path_to_output_file(file_name, data_dir_name)
+    path_to_smash_data = qol.get_path_to_output_file(file_name, data_dir_name, BASE_PATH_TO_DATA)
     # Read the SMASH data with block metadata
     df = read_smash_dilepton_output(path_to_smash_data)
     # Aggregate dilepton pairs
