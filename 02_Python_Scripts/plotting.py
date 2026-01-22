@@ -72,30 +72,17 @@ def plot_hist_dilepton_invariant_mass(dilepton_data_input: pd.DataFrame, bin_edg
     fig, ax = plt.subplots(figsize=(8,5))
     # Get data for all dileptons
     all_dileptons = dilepton_only
-    _plot_dilepton_hist_line(
-        ax,
-        all_dileptons,
-        bin_edges,
-        label="all dileptons",
-        color="black",
-        linewidth=2.0,
-        alpha=0.9,
-        gap_filling=gap_filling,
-        max_gap_bins=in_max_gap_bins,
-    )
+    _plot_dilepton_hist_line(ax, all_dileptons, bin_edges, 
+                             label="all dileptons", color="black", linewidth=2.0, alpha=0.9,
+                             gap_filling=gap_filling, max_gap_bins=in_max_gap_bins,
+                             )
     # Plot subsets for individual decay channels producing dileptons
     for id in p_parent_pdg_ids:
         sub = dilepton_data_input[dilepton_data_input["p_parent_pdg_id"] == id]
-        _plot_dilepton_hist_line(
-            ax,
-            sub,
-            bin_edges,
-            label=pdg_name_map.get(id, str(id)),
-            linewidth=1.5,
-            alpha=0.9,
-            gap_filling=gap_filling,
-            max_gap_bins=in_max_gap_bins,
-        )
+        _plot_dilepton_hist_line(ax, sub, bin_edges,
+                                 label=pdg_name_map.get(id, str(id)), linewidth=1.5, alpha=0.9,
+                                 gap_filling=gap_filling, max_gap_bins=in_max_gap_bins,
+                                 )
     # Set overall properties
     ax.set_yscale("log")
     ax.set_ylim(bottom=0)
