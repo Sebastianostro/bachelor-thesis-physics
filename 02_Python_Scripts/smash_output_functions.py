@@ -121,19 +121,21 @@ def adjust_shining_weights(input_data: pd.DataFrame)-> pd.DataFrame:
     return input_data
 
 ## Function to aggregate multiple different simulation runs
-def aggregate_runs(base_dir: str, filename: str) -> pd.DataFrame:
+def aggregate_runs(root_dir: str | Path, data_dir: str, filename: str) -> pd.DataFrame:
     '''
     Docstring for aggregate_runs
     
-    :param base_dir: Description
-    :type base_dir: str
+    :param root_dir: Description
+    :type root_dir: str | Path
+    :param data_dir: Description
+    :type data_dir: str
     :param filename: Description
     :type filename: str
     :return: Description
     :rtype: DataFrame
     '''
     # Create path to root folder containing the different simulation runs 
-    base_path = Path(base_dir)
+    base_path = Path(root_dir) / data_dir
     # Create sorted list of non-empty subdirectories below base_path
     run_dirs = sorted([p for p in base_path.iterdir() if p.is_dir() and p.name.isdigit()],
                       key=lambda p: int(p.name),
