@@ -23,10 +23,10 @@ FILE_NAME = 'Dileptons.oscar'  # Example SMASH output file name
 # MAIN SCRIPT
 # -----------------------------
 # Construct full path to the SMASH file
-path_to_smash_data = qol.get_path_to_output_file(FILE_NAME, DATA_DIR_NAME, BASE_PATH_TO_DATA)
+path_to_smash_data = qol.get_path_to_output_file(file_name=FILE_NAME, folder_name=DATA_DIR_NAME, root_path=BASE_PATH_TO_DATA)
 full_dilepton_data = io_smash.read_smash_dilepton_output(path_to_smash_data)
 short_dilepton_data = io_smash.aggregate_dilepton_pairs(full_dilepton_data)
-
+#full_dilepton_data = sof.aggregate_runs(DATA_DIR_NAME, FILE_NAME)
 # Enrich the DataFrame with PDG names, rapidity, and invariant mass
 #smash_data_enriched = sof.calculate_rapidity(smash_data)
 dilepton_data_enriched = sof.calculate_invariant_mass(short_dilepton_data, col_energy="p0", col_px="px", col_py="py", col_pz="pz")

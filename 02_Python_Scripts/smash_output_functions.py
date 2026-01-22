@@ -1,9 +1,10 @@
 # Script that provides functions to calculate rapidity and invariant mass from a SMASH output file.
 
 # Import necessary libraries
-import numpy as np
+from pathlib import Path
 from functools import partial
 import pandas as pd
+import numpy as np
 
 import io_smash
 import quality_of_life as qol
@@ -118,6 +119,46 @@ def adjust_shining_weights(input_data: pd.DataFrame)-> pd.DataFrame:
     input_data = qol.apply_data_types(input_data, io_smash.OSCAR_DATA_TYPES)
 
     return input_data
+
+## Function to aggregate multiple different simulation runs
+def aggregate_runs(base_dir: str, filename: str) -> pd.DataFrame:
+    '''
+    Docstring for aggregate_runs
+    
+    :param base_dir: Description
+    :type base_dir: str
+    :param filename: Description
+    :type filename: str
+    :return: Description
+    :rtype: DataFrame
+    '''
+    # Create path to root folder containing the different simulation runs 
+    base_path = Path(base_dir)
+    # Create sorted list of non-empty subdirectories below base_path
+    run_dirs = sorted([p for p in base_path.iterdir() if p.is_dir() and p.name.isdigit()],
+                      key=lambda p: int(p.name),
+                      )
+
+    aggregated = []
+    for run_dir in run_dirs:
+        run_file = run_dir / filename
+        if not run_file.exists():
+            print(f"skip missing: {run_file}")
+            continue
+
+        full_data = io_smash.read_smash_dilepton_output(run_file)
+        short_data = io_smash.aggregate_dilepton_pairs(full_data)
+        df = calculate_invariant_mass(short_data, col_energy="p0", col_px="px", col_py="py", col_pz="pz")
+        df = enrich_dilepton_with_parent(df)
+        df = adjust_shining_weights(df)
+        df["run_id"] = int(run_dir.name)
+        aggregated.append(df)
+
+    if not aggregated:
+        return pd.DataFrame()
+
+    return pd.concat(aggregated, ignore_index=True)
+
 
 ## (To be deleted as not used) Function to print basic statistics of the DataFrame
 def print_basic_statistics(df):
