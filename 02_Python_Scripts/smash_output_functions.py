@@ -132,15 +132,16 @@ def enrich_dilepton_with_parent(df: pd.DataFrame) -> pd.DataFrame:
 ## (To be deleted as not used) Function to adjust shining weights for number of overall events
 def adjust_shining_weights(input_data: pd.DataFrame)-> pd.DataFrame:
     '''
-    Function adjusts shining weights in the dataset for total number of events in this simulation run
+    Function adjusts shining weights in the dataset for total number of dilepton events in this data set.
     
-    :param input_data: Expected to be a Pandas DataFrame with at least the columns "event" and "block_weight"
+    :param input_data: Expected to be a Pandas DataFrame with at least the columns "p_pdg_id" is correctly
+     filled via io_smash.aggregate_dilepton_pairs function executed before, and "block_weight"
     :type input_data: pd.DataFrame
-    :return: Pandas DataFrame with an additional column called "block_weight_adj" that contains the event-adjusted shining weight to be used in histogram 
+    :return: Pandas DataFrame with an additional column called "block_weight_adj" that contains the number-adjusted shining weight to be used in histogram 
     :rtype: DataFrame
     '''
     # Get the number of events for this simulation run
-    no_events = int(input_data["event"].max()) + 1
+    no_events = int((input_data["p_pdg_id"] == -1111).sum())
     # New column created to adjust shining weights for number of events 
     input_data["block_weight_adj"] = input_data["block_weight"] / no_events
     # Apply OSCAR dtypes again to ensure correct types
