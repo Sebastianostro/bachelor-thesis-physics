@@ -100,17 +100,17 @@ def plot_hist_dilepton_invariant_mass(dilepton_data_input: pd.DataFrame, bin_edg
     ax.set_yscale("log")
     ax.set_ylim(bottom=0)
     ax.set_xscale("linear")
-    x_limits = (0,bin_edges[-1]+1e-1)
+    x_limits = (0,bin_edges[-1])
     ax.set_xlim(x_limits)
-    ax.set_xlabel("Invariant Mass $m_{inv}$")
+    ax.set_xlabel("Invariant Mass $m_{inv}$ (GeV/$c^2$)")
     y_label = r'$\frac{dN}{d m_{inv}}$'
     ax.set_ylabel(y_label)
-    ax.set_title(f"Dilepton invariant mass per decay channel ({n_events} events)")
+    ax.set_title(f"np @ 1.5 GeV ({n_events} events)")
     ax.legend()
     ax.grid(True, alpha=0.3)
     fig.tight_layout()
 
-    # Save
+    # Save or show the figure
     if save_figure:
         if file_name is None:
             file_name = f"Hist_InvMass_{n_events}.png"
