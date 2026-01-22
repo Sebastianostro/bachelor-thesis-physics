@@ -3,6 +3,7 @@
 # -----------------------------
 ## Standard libraries
 import sys
+import os
 from pathlib import Path
 import pandas as pd
 ## Third-party libraries
@@ -25,6 +26,15 @@ def get_path_to_output_file(file_name, folder_name, root_path)-> Path:
         print(f"Datei nicht gefunden: {path_to_file}")
         sys.exit(1)
     return path_to_file
+
+## Function to get the save path for figures
+def get_save_path(directory: str, filename: str) -> str:
+    """
+    Return absolute path for saving an image inside the figures_dir.
+    Ensures the directory exists.
+    """
+    os.makedirs(directory, exist_ok=True)
+    return os.path.join(directory, filename)
 
 ## Function to get PDG name from PDG ID
 def get_pdg_name(pdg_id, long_name = False)-> str:

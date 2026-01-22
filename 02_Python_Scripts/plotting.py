@@ -5,27 +5,15 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import smash_output_functions as sof
+
+import quality_of_life as qol
 
 # Define directory to save figures
-script_dir = os.path.dirname(os.path.abspath(__file__))
-figure_dir = os.path.abspath(os.path.join(script_dir, '..', '06_Figures'))
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+FIGURE_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, '..', '06_Figures'))
 
 # Functions
-## Function to ensure directory exists
-def _ensure_dir(path):
-    os.makedirs(path, exist_ok=True)
-
-## Function to get the save path for figures
-def get_save_path(filename: str) -> str:
-    """
-    Return absolute path for saving an image inside the figures_dir.
-    Ensures the directory exists.
-    """
-    _ensure_dir(figure_dir)
-    return os.path.join(figure_dir, filename)
-
-# Define a function to fill small gaps in histogram data. Maximum number of empty bins to bridge linearly
+## Define a function to fill small gaps in histogram data. Maximum number of empty bins to bridge linearly
 def fill_small_gaps(counts, centers, max_gap_bins):
     mask = counts > 0
     idx = np.where(mask)[0]
@@ -39,11 +27,12 @@ def fill_small_gaps(counts, centers, max_gap_bins):
             filled[gap_idx] = np.interp(centers[gap_idx], [centers[left], centers[right]], [counts[left], counts[right]],)
     return filled
 
-def _plot_dilepton_hist_line(ax, df, bin_axis, weight, bin_edges,
+def _plot_dilepton_hist_line(ax, df, col_bin_axis, col_weight, bin_edges,
                              label, color=None, linewidth=1.5, alpha=0.9,
                              gap_filling=False, max_gap_bins=2):
-    p0_label = sof._resolve_col(df, bin_axis, 5)
-    counts, edges = np.histogram(df["m_inv"], bins=bin_edges, weights=df["block_weight"],)
+    col_plot_value = qol.resolve_col(df, col_bin_axis, 5)
+    col_plot_weight = qol.resolve_col(df, col_weight, "block_weight")
+    counts, edges = np.histogram(df[col_plot_value], bins=bin_edges, weights=df[col_plot_weight],)
     centers = 0.5 * (edges[1:] + edges[:-1])
     if gap_filling:
         counts = fill_small_gaps(counts, centers, max_gap_bins=max_gap_bins)
@@ -57,7 +46,9 @@ def _plot_dilepton_hist_line(ax, df, bin_axis, weight, bin_edges,
     )
 
 ## Function to plot histogram of invariant mass for dileptons including different decay channels
-def plot_hist_dilepton_invariant_mass(dilepton_data_input: pd.DataFrame, bin_edges: np.ndarray, gap_filling = False, in_max_gap_bins = 2, save_figure=False, file_name=None):
+def plot_hist_dilepton_invariant_mass(dilepton_data_input: pd.DataFrame, bin_edges: np.ndarray,
+                                      gap_filling = False, in_max_gap_bins = 2,
+                                      save_figure=False, file_name=None):
     # Preprocessing data to separate different pseudo-parent PDG IDs and map to names for legend
     # First, filter only dilepton entries
     dilepton_only = dilepton_data_input[dilepton_data_input["p_pdg_id"]==-1111]
@@ -67,7 +58,7 @@ def plot_hist_dilepton_invariant_mass(dilepton_data_input: pd.DataFrame, bin_edg
     # (should not be the case but would also be useful to cover the potential case of mutliple "parents" (in-going particles) per dilepton block)
     p_parent_pdg_ids = [id for id in p_parent_pdg_ids if id != 0]  # remove 0 if present
     # Map PDG IDs to names
-    pdg_name_map = {id: sof.get_pdg_name(id) for id in p_parent_pdg_ids}
+    pdg_name_map = {id: qol.get_pdg_name(id) for id in p_parent_pdg_ids}
 
     # Get total number of events for title
     n_events = int(dilepton_data_input['event'].max()) + 1
@@ -75,14 +66,14 @@ def plot_hist_dilepton_invariant_mass(dilepton_data_input: pd.DataFrame, bin_edg
     fig, ax = plt.subplots(figsize=(8,5))
     # Get data for all dileptons
     all_dileptons = dilepton_only
-    _plot_dilepton_hist_line(ax, all_dileptons, bin_edges, 
+    _plot_dilepton_hist_line(ax, all_dileptons, col_bin_axis="m_inv", col_weight="block_weight_adj", bin_edges = bin_edges, 
                              label="all dileptons", color="black", linewidth=2.0, alpha=0.9,
                              gap_filling=gap_filling, max_gap_bins=in_max_gap_bins,
                              )
     # Plot subsets for individual decay channels producing dileptons
     for id in p_parent_pdg_ids:
         sub = dilepton_data_input[dilepton_data_input["p_parent_pdg_id"] == id]
-        _plot_dilepton_hist_line(ax, sub, bin_edges,
+        _plot_dilepton_hist_line(ax, sub, bin_edges=bin_edges, col_bin_axis="m_inv", col_weight="block_weight_adj",
                                  label=pdg_name_map.get(id, str(id)), linewidth=1.5, alpha=0.9,
                                  gap_filling=gap_filling, max_gap_bins=in_max_gap_bins,
                                  )
@@ -104,7 +95,7 @@ def plot_hist_dilepton_invariant_mass(dilepton_data_input: pd.DataFrame, bin_edg
     if save_figure:
         if file_name is None:
             file_name = f"Hist_InvMass_{n_events}.png"
-        save_path = get_save_path(file_name)
+        save_path = qol.get_save_path(FIGURE_DIR, file_name)
         fig.savefig(save_path, bbox_inches='tight')
         plt.close(fig)
         print(f"Figure saved as {file_name} to {save_path}")
@@ -140,7 +131,7 @@ def plot_histogram(df, pdg_id, column_name, save_figure=False, file_name=None, d
     if save_figure:
         if file_name is None:
             file_name = f'histogram_{column_name}_pdg{pdg_id}.png'
-        save_path = get_save_path(file_name)
+        save_path = qol.get_save_path(FIGURE_DIR, file_name)
         plt.savefig(save_path, bbox_inches='tight')
         plt.close()
         print(f"Figure saved as {file_name} to {save_path}")
@@ -200,7 +191,6 @@ def plot_distribution(df, pdg_id, column_name, save_figure=False, file_name=None
     plt.title(f'Distribution of {column_name} for PDG ID {pdg_id} and KDE')
     plt.tight_layout()
     plt.show()
-
 
 # End of functions
 
