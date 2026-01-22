@@ -62,18 +62,21 @@ def plot_hist_dilepton_invariant_mass(dilepton_data_input: pd.DataFrame, bin_edg
 
     # Get total number of events for title
     n_events = int(dilepton_data_input['event'].max()) + 1
+
+    col_bin_axis = "m_inv"
+    col_weight = "block_weight"
     # Start plotting
     fig, ax = plt.subplots(figsize=(8,5))
     # Get data for all dileptons
     all_dileptons = dilepton_only
-    _plot_dilepton_hist_line(ax, all_dileptons, col_bin_axis="m_inv", col_weight="block_weight_adj", bin_edges = bin_edges, 
+    _plot_dilepton_hist_line(ax, all_dileptons, col_bin_axis=col_bin_axis, col_weight=col_weight, bin_edges = bin_edges, 
                              label="all dileptons", color="black", linewidth=2.0, alpha=0.9,
                              gap_filling=gap_filling, max_gap_bins=in_max_gap_bins,
                              )
     # Plot subsets for individual decay channels producing dileptons
     for id in p_parent_pdg_ids:
         sub = dilepton_data_input[dilepton_data_input["p_parent_pdg_id"] == id]
-        _plot_dilepton_hist_line(ax, sub, bin_edges=bin_edges, col_bin_axis="m_inv", col_weight="block_weight_adj",
+        _plot_dilepton_hist_line(ax, sub, bin_edges=bin_edges, col_bin_axis=col_bin_axis, col_weight=col_weight,
                                  label=pdg_name_map.get(id, str(id)), linewidth=1.5, alpha=0.9,
                                  gap_filling=gap_filling, max_gap_bins=in_max_gap_bins,
                                  )
@@ -86,7 +89,7 @@ def plot_hist_dilepton_invariant_mass(dilepton_data_input: pd.DataFrame, bin_edg
     ax.set_xlabel("Invariant Mass $m_{inv}$ (GeV/$c^2$)")
     y_label = r'$\frac{dN}{d m_{inv}}$'
     ax.set_ylabel(y_label)
-    ax.set_title(f"np @ 1.5 GeV ({n_events} events)")
+    ax.set_title(f"np @ 1.5 GeV ({n_events:,} events)")
     ax.legend()
     ax.grid(True, alpha=0.3)
     fig.tight_layout()
