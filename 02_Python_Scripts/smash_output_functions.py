@@ -3,28 +3,13 @@
 # Import necessary libraries
 import numpy as np
 from functools import partial
-import pdg
 import pandas as pd
-import io_smash
 
+import io_smash
+import quality_of_life as qol
 # Define constants if needed (currently none)
 
 # Define functions
-## Function to resolve column specification to actual column label in DataFrame to handle different input types in functions,
-### e.g., string labels of columns or integer positions
-def resolve_col(df, col, default):
-    if col is None:
-        col = default
-    # String -> direct label
-    if isinstance(col, str):
-        return col
-    # int: if label exists -> take it; else interpret as position argument
-    if isinstance(col, int):
-        if col in df.columns:
-            return col
-        return df.columns[col]
-    raise TypeError(f"Unsupported column spec: {col!r}")
-
 ## Function to calculate rapidity values for data in a DataFrame
 def calculate_rapidity(df, col_energy=None, col_beam=None)-> pd.DataFrame:
     '''
@@ -35,8 +20,8 @@ def calculate_rapidity(df, col_energy=None, col_beam=None)-> pd.DataFrame:
     Output: 
         Original DataFrame enriched by a column containing the rapidity values (named 'y')
     '''
-    p0_label = resolve_col(df, col_energy, 5)  # Energy column
-    pz_label = resolve_col(df, col_beam, 8)  # pz column
+    p0_label = qol.resolve_col(df, col_energy, 5)  # Energy column
+    pz_label = qol.resolve_col(df, col_beam, 8)  # pz column
     
     p0 = df[p0_label]
     pz = df[pz_label]
@@ -56,10 +41,10 @@ def calculate_invariant_mass(df, col_energy=None, col_px=None, col_py=None, col_
     Output: 
         Original DataFrame enriched by a column containing the invariant mass values (named 'm_inv')
     '''
-    p0_label = resolve_col(df, col_energy, 5)  # Energy column
-    px_label = resolve_col(df, col_px, 6)      # px column
-    py_label = resolve_col(df, col_py, 7)      # py column
-    pz_label = resolve_col(df, col_pz, 8)      # pz column
+    p0_label = qol.resolve_col(df, col_energy, 5)  # Energy column
+    px_label = qol.resolve_col(df, col_px, 6)      # px column
+    py_label = qol.resolve_col(df, col_py, 7)      # py column
+    pz_label = qol.resolve_col(df, col_pz, 8)      # pz column
 
     p0 = df[p0_label]
     px = df[px_label]
@@ -68,21 +53,6 @@ def calculate_invariant_mass(df, col_energy=None, col_px=None, col_py=None, col_
     m2 = p0**2 - (px**2 + py**2 + pz**2)
     df['m_inv'] = np.sqrt(np.clip(m2, 0, None))
     return df
-
-## Function to get PDG name from PDG ID
-def get_pdg_name(pdg_id, long_name = False)-> str:
-    # Connect to PDG API
-    api = pdg.connect()
-
-    particle = api.get_particle_by_mcid(int(pdg_id))
-    if particle is not None:
-        if long_name:
-            return str(particle)
-        else:
-        # Keep only the part after the colon (particle short name).
-            return str(particle).split(":", 1)[-1].strip()
-    else:
-        return "Unknown particle"
 
 ## Function to add PDG names to the DataFrame based on PDG IDs
 def add_pdg_names(df, pdg_column=None, long_name = False)-> pd.DataFrame:
@@ -100,10 +70,10 @@ def add_pdg_names(df, pdg_column=None, long_name = False)-> pd.DataFrame:
     :return: DataFrame (in-place) enriched with a column containing the PDG names (named 'pdg_name').
     :rtype: pd.DataFrame
     '''
-    pdg_id_label = resolve_col(df, pdg_column, 9)
+    pdg_id_label = qol.resolve_col(df, pdg_column, 9)
     # Add PDG names to the DataFrame
     ## Create wrapper function
-    get_pdg_name_wrap = partial(get_pdg_name, long_name=long_name)
+    get_pdg_name_wrap = partial(qol.get_pdg_name, long_name=long_name)
     ## Apply wrapper function to the specified PDG ID column
     df['pdg_name'] = df[pdg_id_label].apply(get_pdg_name_wrap)
 
@@ -125,7 +95,7 @@ def enrich_dilepton_with_parent(df: pd.DataFrame) -> pd.DataFrame:
     # New column created: only properly set for dileptons (-1111), otherwise 0
     df["p_parent_pdg_id"] = np.where(df["p_pdg_id"] == -1111, in_pdg_per_block, 0)
     # Apply OSCAR dtypes again to ensure correct types
-    df = io_smash.apply_oscar_dtypes(df)
+    df = qol.apply_data_types(df, io_smash.OSCAR_DATA_TYPES)
 
     return df
 
@@ -145,7 +115,7 @@ def adjust_shining_weights(input_data: pd.DataFrame)-> pd.DataFrame:
     # New column created to adjust shining weights for number of events 
     input_data["block_weight_adj"] = input_data["block_weight"] / no_events
     # Apply OSCAR dtypes again to ensure correct types
-    input_data = io_smash.apply_oscar_dtypes(input_data)
+    input_data = qol.apply_data_types(input_data, io_smash.OSCAR_DATA_TYPES)
 
     return input_data
 
@@ -176,5 +146,5 @@ def print_basic_statistics(df):
 if __name__ == "__main__":
     # Example usage and test of functions
     id = input("Enter PDG ID: ")
-    print(f"PDG name for entered PDG ID {id}: ", get_pdg_name(int(id), long_name=True))
+    print(f"PDG name for entered PDG ID {id}: ", qol.get_pdg_name(int(id), long_name=True))
 # End of script

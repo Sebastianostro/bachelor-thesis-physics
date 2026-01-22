@@ -8,8 +8,6 @@ import pandas as pd
 ## Third-party libraries
 import pdg
 ## Custom libraries
-import smash_output_functions as sof
-import plotting as plot
 
 # -----------------------------
 # CLASSES AND FUNCTIONS
@@ -28,8 +26,38 @@ def get_path_to_output_file(file_name, folder_name, root_path)-> Path:
         sys.exit(1)
     return path_to_file
 
+## Function to get PDG name from PDG ID
+def get_pdg_name(pdg_id, long_name = False)-> str:
+    # Connect to PDG API
+    api = pdg.connect()
+
+    particle = api.get_particle_by_mcid(int(pdg_id))
+    if particle is not None:
+        if long_name:
+            return str(particle)
+        else:
+        # Keep only the part after the colon (particle short name).
+            return str(particle).split(":", 1)[-1].strip()
+    else:
+        return "Unknown particle"
+
 ## Function to apply data types to DataFrame columns
 def apply_data_types(df: pd.DataFrame, data_typ_def: dict[str, str]) -> pd.DataFrame:
     """Apply data types to columns that exist in df."""
     dtype_map = {k: v for k, v in data_typ_def.items() if k in df.columns}
     return df.astype(dtype_map)
+
+## Function to resolve column specification to actual column label in DataFrame to handle different input types in functions,
+### e.g., string labels of columns or integer positions
+def resolve_col(df, col, default):
+    if col is None:
+        col = default
+    # String -> direct label
+    if isinstance(col, str):
+        return col
+    # int: if label exists -> take it; else interpret as position argument
+    if isinstance(col, int):
+        if col in df.columns:
+            return col
+        return df.columns[col]
+    raise TypeError(f"Unsupported column spec: {col!r}")
