@@ -2,7 +2,7 @@
 # IMPORTS
 # -----------------------------
 ## Standard libraries
-
+import numpy as np
 ## Third-party libraries
 import pdg
 ## Custom libraries
@@ -34,7 +34,7 @@ dilepton_data_enriched = sof.calculate_invariant_mass(short_dilepton_data, col_e
 dilepton_data_enriched = sof.enrich_dilepton_with_parent(dilepton_data_enriched)
 
 #print((dilepton_data_enriched["p_pdg_id"]==-1111).sum())
-
-plot.plot_hist_dilepton_invariant_mass(dilepton_data_enriched, save_figure=True, file_name="Hist_np_1.5GeV_10000events.png", in_max_gap_bins=2, in_bins=50)
+bin_struct = np.linspace(0,0.7,41)
+plot.plot_hist_dilepton_invariant_mass(dilepton_data_enriched, bin_edges= bin_struct,save_figure=True, file_name="Hist_np_1.5GeV_10000events.png")
 
 # End of script

@@ -39,8 +39,22 @@ def fill_small_gaps(counts, centers, max_gap_bins):
             filled[gap_idx] = np.interp(centers[gap_idx], [centers[left], centers[right]], [counts[left], counts[right]],)
     return filled
 
+def _plot_dilepton_hist_line(ax, df, bin_edges, label, color=None, linewidth=1.5, alpha=0.9, gap_filling=False, max_gap_bins=2):
+    counts, edges = np.histogram(df["m_inv"], bins=bin_edges, weights=df["block_weight"],)
+    centers = 0.5 * (edges[1:] + edges[:-1])
+    if gap_filling:
+        counts = fill_small_gaps(counts, centers, max_gap_bins=max_gap_bins)
+    ax.plot(
+        centers,
+        counts,
+        color=color,
+        linewidth=linewidth,
+        alpha=alpha,
+        label=label,
+    )
+
 ## Function to plot histogram of invariant mass for dileptons including different decay channels
-def plot_hist_dilepton_invariant_mass(dilepton_data_input: pd.DataFrame, save_figure=False, file_name=None, in_bins=10, in_max_gap_bins = 2):
+def plot_hist_dilepton_invariant_mass(dilepton_data_input: pd.DataFrame, bin_edges: np.ndarray, gap_filling = False, in_max_gap_bins = 2, save_figure=False, file_name=None):
     # Preprocessing data to separate different pseudo-parent PDG IDs and map to names for legend
     # First, filter only dilepton entries
     dilepton_only = dilepton_data_input[dilepton_data_input["p_pdg_id"]==-1111]
@@ -54,53 +68,55 @@ def plot_hist_dilepton_invariant_mass(dilepton_data_input: pd.DataFrame, save_fi
 
     # Get total number of events for title
     n_events = int(dilepton_data_input['event'].max()) + 1
-    # Set the binning structure for the histogram
-    edges = np.linspace(0,0.8,in_bins)
-    plt.figure(figsize=(8,5))
+    # Start plotting
+    fig, ax = plt.subplots(figsize=(8,5))
+    # Get data for all dileptons
     all_dileptons = dilepton_only
-    all_counts, all_edges = np.histogram(all_dileptons["m_inv"], bins=edges, weights=all_dileptons["block_weight"],)
-    all_centers = 0.5 * (all_edges[1:] + all_edges[:-1])
-    all_counts = fill_small_gaps(all_counts, all_centers, max_gap_bins=in_max_gap_bins)
-    plt.plot(
-        all_centers,
-        all_counts,
+    _plot_dilepton_hist_line(
+        ax,
+        all_dileptons,
+        bin_edges,
+        label="all dileptons",
         color="black",
         linewidth=2.0,
         alpha=0.9,
-        label="all dileptons",
+        gap_filling=gap_filling,
+        max_gap_bins=in_max_gap_bins,
     )
-
+    # Plot subsets for individual decay channels producing dileptons
     for id in p_parent_pdg_ids:
         sub = dilepton_data_input[dilepton_data_input["p_parent_pdg_id"] == id]
-        counts, edges = np.histogram(sub["m_inv"], bins=edges, weights=sub["block_weight"],)
-        centers = 0.5 * (edges[1:] + edges[:-1])
-        counts = fill_small_gaps(counts, centers, max_gap_bins=in_max_gap_bins)
-        plt.plot(
-            centers,
-            counts,
+        _plot_dilepton_hist_line(
+            ax,
+            sub,
+            bin_edges,
+            label=pdg_name_map.get(id, str(id)),
             linewidth=1.5,
             alpha=0.9,
-            label=pdg_name_map.get(id, str(id)),
+            gap_filling=gap_filling,
+            max_gap_bins=in_max_gap_bins,
         )
-    plt.yscale("log")
-    plt.ylim(bottom=0)
-    plt.xscale("linear")
-    plt.xlim(0, 0.7)
-    plt.xlabel("Invariant Mass $m_{inv}$")
+    # Set overall properties
+    ax.set_yscale("log")
+    ax.set_ylim(bottom=0)
+    ax.set_xscale("linear")
+    x_limits = (0,bin_edges[-1]+1e-1)
+    ax.set_xlim(x_limits)
+    ax.set_xlabel("Invariant Mass $m_{inv}$")
     y_label = r'$\frac{dN}{d m_{inv}}$'
-    plt.ylabel(y_label)
-    plt.title(f"Dilepton invariant mass per decay channel ({n_events} events)")
-    plt.legend()
-    plt.grid(True, alpha=0.3)
-    plt.tight_layout()
+    ax.set_ylabel(y_label)
+    ax.set_title(f"Dilepton invariant mass per decay channel ({n_events} events)")
+    ax.legend()
+    ax.grid(True, alpha=0.3)
+    fig.tight_layout()
 
     # Save
     if save_figure:
         if file_name is None:
             file_name = f"Hist_InvMass_{n_events}.png"
         save_path = get_save_path(file_name)
-        plt.savefig(save_path, bbox_inches='tight')
-        plt.close()
+        fig.savefig(save_path, bbox_inches='tight')
+        plt.close(fig)
         print(f"Figure saved as {file_name} to {save_path}")
     else:
         plt.show()
