@@ -25,8 +25,22 @@ def get_save_path(filename: str) -> str:
     _ensure_dir(figure_dir)
     return os.path.join(figure_dir, filename)
 
+# Define a function to fill small gaps in histogram data. Maximum number of empty bins to bridge linearly
+def fill_small_gaps(counts, centers, max_gap_bins):
+    mask = counts > 0
+    idx = np.where(mask)[0]
+    if idx.size < 2:
+        return counts
+    filled = counts.copy()
+    for left, right in zip(idx[:-1], idx[1:]):
+        gap = right - left - 1
+        if 0 < gap <= max_gap_bins:
+            gap_idx = np.arange(left + 1, right)
+            filled[gap_idx] = np.interp(centers[gap_idx], [centers[left], centers[right]], [counts[left], counts[right]],)
+    return filled
+
 ## Function to plot histogram of invariant mass for dileptons including different decay channels
-def plot_hist_dilepton_invariant_mass(dilepton_data_input: pd.DataFrame, save_figure=False, file_name=None, in_bins=60, in_max_gap_bins = 2):
+def plot_hist_dilepton_invariant_mass(dilepton_data_input: pd.DataFrame, save_figure=False, file_name=None, in_bins=10, in_max_gap_bins = 2):
     # Preprocessing data to separate different pseudo-parent PDG IDs and map to names for legend
     # First, filter only dilepton entries
     dilepton_only = dilepton_data_input[dilepton_data_input["p_pdg_id"]==-1111]
@@ -40,26 +54,11 @@ def plot_hist_dilepton_invariant_mass(dilepton_data_input: pd.DataFrame, save_fi
 
     # Get total number of events for title
     n_events = int(dilepton_data_input['event'].max()) + 1
-
-    bins = in_bins  # oder np.linspace(min,max,n)
+    # Set the binning structure for the histogram
+    edges = np.linspace(0,0.8,in_bins)
     plt.figure(figsize=(8,5))
-    # Define a function to fill small gaps in histogram data
-    # maximum number of empty bins to bridge linearly
-    def fill_small_gaps(counts, centers, max_gap_bins = in_max_gap_bins):
-        mask = counts > 0
-        idx = np.where(mask)[0]
-        if idx.size < 2:
-            return counts
-        filled = counts.copy()
-        for left, right in zip(idx[:-1], idx[1:]):
-            gap = right - left - 1
-            if 0 < gap <= max_gap_bins:
-                gap_idx = np.arange(left + 1, right)
-                filled[gap_idx] = np.interp(centers[gap_idx], [centers[left], centers[right]], [counts[left], counts[right]],)
-        return filled
-
     all_dileptons = dilepton_only
-    all_counts, all_edges = np.histogram(all_dileptons["m_inv"], bins=bins, weights=all_dileptons["block_weight"],)
+    all_counts, all_edges = np.histogram(all_dileptons["m_inv"], bins=edges, weights=all_dileptons["block_weight"],)
     all_centers = 0.5 * (all_edges[1:] + all_edges[:-1])
     all_counts = fill_small_gaps(all_counts, all_centers, max_gap_bins=in_max_gap_bins)
     plt.plot(
@@ -73,7 +72,7 @@ def plot_hist_dilepton_invariant_mass(dilepton_data_input: pd.DataFrame, save_fi
 
     for id in p_parent_pdg_ids:
         sub = dilepton_data_input[dilepton_data_input["p_parent_pdg_id"] == id]
-        counts, edges = np.histogram(sub["m_inv"], bins=bins, weights=sub["block_weight"],)
+        counts, edges = np.histogram(sub["m_inv"], bins=edges, weights=sub["block_weight"],)
         centers = 0.5 * (edges[1:] + edges[:-1])
         counts = fill_small_gaps(counts, centers, max_gap_bins=in_max_gap_bins)
         plt.plot(
