@@ -19,7 +19,7 @@ PATH_TO_DATA_LOCAL = '/home/sebastian/dev/python/bachelor-thesis-physics/05_File
 PATH_TO_DATA_REMOTE = '/lustre/hyihp/sostrows/smash_outputs/'
 DATA_DIR_NAME = 'Dilepton_Out_Std_Nevents_10000_OutInt_NaN/' # Example data subdirectory
 FILE_NAME = 'Dileptons.oscar'  # Example SMASH output file name
-RUN_ON_LOCAL = True  # Whether to run on local or remote data
+RUN_ON_LOCAL = False  # Whether to run on local or remote data
 SINGLE_RUN = False  # Whether to process a single run or aggregate multiple runs
 # -----------------------------
 # MAIN SCRIPT
