@@ -86,7 +86,7 @@ def plot_hist_multiple(input_data: pd.DataFrame, col_bin_axis, col_weight, bin_e
     ax.set_xlabel("$m_{inv}$ (GeV/$c^2$)")
     y_label = r'$\frac{dN}{d m_{inv}}$'
     ax.set_ylabel(y_label)
-    ax.set_title(f"np @ 1.5 GeV ({n_events:,} events)")
+    ax.set_title(f"np @ 1.5 GeV, ({n_events:,} events, 100 runs)")
     ax.legend()
     ax.grid(True, alpha=0.3)
     fig.tight_layout()

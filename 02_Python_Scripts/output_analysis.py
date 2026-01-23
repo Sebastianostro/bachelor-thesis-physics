@@ -16,9 +16,9 @@ import plotting as plot
 # -----------------------------
 # Define file information (paths, names)
 BASE_PATH_TO_DATA = '/home/sebastian/dev/python/bachelor-thesis-physics/05_Files_from_Virgo/'
-DATA_DIR_NAME = 'Dilepton_Out_Std_Nevents_1m_OutInt_NaN/' # Example data subdirectory
+DATA_DIR_NAME = 'Dilepton_Out_Std_Nevents_10000_OutInt_NaN/' # Example data subdirectory
 FILE_NAME = 'Dileptons.oscar'  # Example SMASH output file name
-SINGLE_RUN = True  # Whether to process a single run or aggregate multiple runs
+SINGLE_RUN = False  # Whether to process a single run or aggregate multiple runs
 # -----------------------------
 # MAIN SCRIPT
 # -----------------------------
@@ -35,7 +35,7 @@ else:
 
 bin_struct = np.linspace(0,0.7,36)
 plot.plot_hist_multiple(dilepton_data_enriched, col_bin_axis="m_inv", col_weight="block_weight_adj",
-                        bin_edges= bin_struct, save_figure=True, file_name="Hist_np_1.5GeV_1m_events.png")
+                        bin_edges= bin_struct, save_figure=True, file_name="Hist_np_1.5GeV_10kx10_events.png")
 
 #print(dilepton_data_enriched)
 #print((dilepton_data_enriched["p_pdg_id"]==-1111))
