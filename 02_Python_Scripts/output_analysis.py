@@ -33,13 +33,13 @@ if SINGLE_RUN:
 else:
     dilepton_data_enriched = sof.aggregate_runs(root_dir=BASE_PATH_TO_DATA, data_dir=DATA_DIR_NAME, filename=FILE_NAME)
 
+bin_struct = np.linspace(0,0.7,36)
+plot.plot_hist_multiple(dilepton_data_enriched, col_bin_axis="m_inv", col_weight="block_weight_adj",
+                        bin_edges= bin_struct, save_figure=True, file_name="Hist_np_1.5GeV_1m_events.png")
+
 #print(dilepton_data_enriched)
 #print((dilepton_data_enriched["p_pdg_id"]==-1111))
 
 #print((dilepton_data_enriched["p_pdg_id"]==-1111).sum())
-bin_struct = np.linspace(0,0.7,36)
-plot.plot_hist_dilepton_invariant_mass(dilepton_data_enriched, 
-                                       bin_edges= bin_struct, 
-                                       save_figure=True, file_name="Hist_np_1.5GeV_1m_events.png")
 
 # End of script

@@ -31,7 +31,7 @@ def _plot_dilepton_hist_line(ax, df, col_bin_axis, col_weight, bin_edges,
                              label, color=None, linewidth=1.5, alpha=0.9,
                              gap_filling=False, max_gap_bins=2):
     col_plot_value = qol.resolve_col(df, col_bin_axis, 5)
-    col_plot_weight = qol.resolve_col(df, col_weight, "block_weight")
+    col_plot_weight = qol.resolve_col(df, col_weight, None)
     counts, edges = np.histogram(df[col_plot_value], bins=bin_edges, weights=df[col_plot_weight],)
     centers = 0.5 * (edges[1:] + edges[:-1])
     if gap_filling:
@@ -45,13 +45,12 @@ def _plot_dilepton_hist_line(ax, df, col_bin_axis, col_weight, bin_edges,
         label=label,
     )
 
-## Function to plot histogram of invariant mass for dileptons including different decay channels
-def plot_hist_dilepton_invariant_mass(dilepton_data_input: pd.DataFrame, bin_edges: np.ndarray,
-                                      gap_filling = False, in_max_gap_bins = 2,
-                                      save_figure=False, file_name=None):
+## Function to plot multiple histograms of a given value including different subsets (e.g. all dileptons and their decay channels)
+def plot_hist_multiple(input_data: pd.DataFrame, col_bin_axis, col_weight, bin_edges: np.ndarray,
+                       save_figure=False, file_name=None, gap_filling = False, in_max_gap_bins = 2):
     # Preprocessing data to separate different pseudo-parent PDG IDs and map to names for legend
     # First, filter only dilepton entries
-    dilepton_only = dilepton_data_input[dilepton_data_input["p_pdg_id"]==-1111]
+    dilepton_only = input_data[input_data["p_pdg_id"]==-1111]
     # Get unique parent PDG IDs
     p_parent_pdg_ids = dilepton_only["p_parent_pdg_id"].unique()
     # Remove 0 (if present) which indicates no parent 
@@ -61,10 +60,8 @@ def plot_hist_dilepton_invariant_mass(dilepton_data_input: pd.DataFrame, bin_edg
     pdg_name_map = {id: qol.get_pdg_name(id) for id in p_parent_pdg_ids}
 
     # Get total number of events for title
-    n_events = int(dilepton_data_input['event'].max()) + 1
+    n_events = int(input_data['event'].max()) + 1
 
-    col_bin_axis = "m_inv"
-    col_weight = "block_weight_adj"
     # Start plotting
     fig, ax = plt.subplots(figsize=(8,5))
     # Get data for all dileptons
@@ -75,7 +72,7 @@ def plot_hist_dilepton_invariant_mass(dilepton_data_input: pd.DataFrame, bin_edg
                              )
     # Plot subsets for individual decay channels producing dileptons
     for id in p_parent_pdg_ids:
-        sub = dilepton_data_input[dilepton_data_input["p_parent_pdg_id"] == id]
+        sub = input_data[input_data["p_parent_pdg_id"] == id]
         _plot_dilepton_hist_line(ax, sub, bin_edges=bin_edges, col_bin_axis=col_bin_axis, col_weight=col_weight,
                                  label=pdg_name_map.get(id, str(id)), linewidth=1.5, alpha=0.9,
                                  gap_filling=gap_filling, max_gap_bins=in_max_gap_bins,
@@ -86,7 +83,7 @@ def plot_hist_dilepton_invariant_mass(dilepton_data_input: pd.DataFrame, bin_edg
     ax.set_xscale("linear")
     x_limits = (0,bin_edges[-1])
     ax.set_xlim(x_limits)
-    ax.set_xlabel("Invariant Mass $m_{inv}$ (GeV/$c^2$)")
+    ax.set_xlabel("$m_{inv}$ (GeV/$c^2$)")
     y_label = r'$\frac{dN}{d m_{inv}}$'
     ax.set_ylabel(y_label)
     ax.set_title(f"np @ 1.5 GeV ({n_events:,} events)")
