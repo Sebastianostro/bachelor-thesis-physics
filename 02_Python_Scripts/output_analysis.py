@@ -15,13 +15,17 @@ import plotting as plot
 # CONSTANTS AND SETTINGS
 # -----------------------------
 # Define file information (paths, names)
-BASE_PATH_TO_DATA = '/home/sebastian/dev/python/bachelor-thesis-physics/05_Files_from_Virgo/'
+PATH_TO_DATA_LOCAL = '/home/sebastian/dev/python/bachelor-thesis-physics/05_Files_from_Virgo/'
+PATH_TO_DATA_REMOTE = '/lustre/hyihp/sostrows/smash_outputs/'
 DATA_DIR_NAME = 'Dilepton_Out_Std_Nevents_10000_OutInt_NaN/' # Example data subdirectory
 FILE_NAME = 'Dileptons.oscar'  # Example SMASH output file name
+RUN_ON_LOCAL = True  # Whether to run on local or remote data
 SINGLE_RUN = False  # Whether to process a single run or aggregate multiple runs
 # -----------------------------
 # MAIN SCRIPT
 # -----------------------------
+# Determine base path to data
+BASE_PATH_TO_DATA = PATH_TO_DATA_LOCAL if RUN_ON_LOCAL else PATH_TO_DATA_REMOTE
 if SINGLE_RUN:
     # Process single run
     path_to_smash_data = qol.get_path_to_output_file(file_name=FILE_NAME, folder_name=DATA_DIR_NAME, root_path=BASE_PATH_TO_DATA)
