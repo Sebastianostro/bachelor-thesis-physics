@@ -1,8 +1,14 @@
 #!/bin/bash
+#SBATCH --job-name=test_multiple
+#SBATCH --output=./slurm_files/slurm_job_%j.out
+#SBATCH --error=./slurm_files/slurm_job_%j.err
+#SBATCH --partition=main
+#SBATCH --time=0-04:00:00
+#SBATCH --mail-user=sebastian.ostrowski@hotmail.com --mail-type=ALL
 
 # Define number of total runs and naming
-TOTAL_RUNS=2
-RUN_PREFIX=Dilepton_Output_Std_Nevents_5_OutInt_NaN
+TOTAL_RUNS=10
+RUN_PREFIX=Dilepton_Out_Std_Nevents_10000_OutInt_NaN
 
 # Optional overrides
 CONFIG_FILE=
