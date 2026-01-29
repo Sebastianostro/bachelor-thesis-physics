@@ -1,18 +1,30 @@
 #!/bin/bash
-#SBATCH --job-name=test
-#SBATCH --nodes=1
-#SBATCH --partition=debug
-#SBATCH --time=0-00:30:00
+# Generelles Setting
+# Für Tests auf Partition "debug" gehen und Zeit auf ~10 Minuten oder weniger setzen
+# Idealerweise nach Test-Runs über "seff <Job_ID>" oder für Arrays "sacct -j <job_ID> --format=JobID,Elapsed,AllocCPUS,CPUTime,TotalCPU,MaxRSS,ReqMem"  
+# CPU-Effizienz = CPUTime / (Elapsed * AllocCPUS)
+# Faustregel: Wenn TotalCPU ~ Elapsed -> single-core, TotalCPU ~ N x Elapsed -> N Kerne aktiv
+# Auf virgo ist immer 2 CPUs der Standard, auch wenn weniger angefragt ist, SMASH kann kein Multithreading (Stand: 29.01.2026)
 
-# Array: 0..4 (5 Runs). Parallelität begrenzen z.B. max. 2 gleichzeitig:
-#SBATCH --array=0-4%2
+#SBATCH --job-name=scaled_test
+#SBATCH --partition=main
+#SBATCH --time=0-01:00:00
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=256M
+
+# Array: 0..4 (5 Runs). Parallelität kann man begrenzen z.B. max. 2 gleichzeitig über 0-4%2:
+#SBATCH --array=0-99%20
 
 # Separate Logfiles pro Array-Task:
 #SBATCH --output=./slurm_files/slurm_%x_%A_%a.out
 #SBATCH --error=./slurm_files/slurm_%x_%A_%a.err
 
+# E-Mail-Benachrichtigung einstellen, falls gewünscht
 #SBATCH --mail-user=sebastian.ostrowski@hotmail.com --mail-type=ALL 
 
+# Festlegen, dass Jobabbruch bei irgendwelchen Problemen sofort erfolgt.
 set -euo pipefail
 
 # Export working directory
@@ -27,7 +39,7 @@ DECAY_FILE=$SLURM_WORKING_DIR/smash_configs/decaymodes_dilepton_new.txt
 CONTAINER=/lustre/hyihp/AG-Elfner/Containers/Production/smash-3.3-max.sif
 
 # Set basis run ID and output root
-RUN_ID_BASE=Dilepton_Output_Std_Nevents_5_OutInt_NaN
+RUN_ID_BASE=Dilepton_Out_Std_Nevents_10000x100_OutInt_NaN
 OUTPUT_ROOT=$SLURM_WORKING_DIR/smash_outputs
 
 usage() {
@@ -74,10 +86,6 @@ echo "Array task:         $TASK_ID (array job: $ARRAY_JOB_ID)"
 echo "Extra SMASH args:   ${SMASH_EXTRA_ARGS[*]:-<none>}"
 
 # Run SMASH
-# Hinweis: dein Original hatte: smash ... -n $SMASH_EXTRA_ARGS
-# Das ist gefährlich, weil -n genau ein Argument erwartet.
-# Besser: -n NICHT hardcoden, sondern in SMASH_EXTRA_ARGS übergeben.
-singularity exec "$CONTAINER" smash -i "$CONFIG_FILE" -d "$DECAY_FILE" -o "$run_out_dir/" \
-  "${SMASH_EXTRA_ARGS[@]}"
+singularity exec "$CONTAINER" smash -i "$CONFIG_FILE" -d "$DECAY_FILE" -o "$run_out_dir/" -n "${SMASH_EXTRA_ARGS[@]}"
 
 echo "SMASH run completed. Outputs are in $run_out_dir/"
