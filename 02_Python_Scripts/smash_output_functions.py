@@ -137,8 +137,14 @@ def aggregate_runs(root_dir: str | Path, data_dir: str, filename: str) -> pd.Dat
     # Create path to root folder containing the different simulation runs 
     base_path = Path(root_dir) / data_dir
     # Create sorted list of non-empty subdirectories below base_path
-    run_dirs = sorted([p for p in base_path.iterdir() if p.is_dir() and p.name.isdigit()],
-                      key=lambda p: int(p.name),
+    # Expected folder names: run_<run_id>_<suffix>
+    def _parse_run_dir_name(name: str) -> tuple[int, int]:
+        parts = name.split("_")
+        # parts[0] == "run", parts[1] == run_id, parts[2] == suffix
+        return int(parts[1]), int(parts[2])
+
+    run_dirs = sorted([p for p in base_path.iterdir() if p.is_dir()],
+                      key=lambda p: _parse_run_dir_name(p.name),
                       )
 
     aggregated = []
@@ -153,7 +159,7 @@ def aggregate_runs(root_dir: str | Path, data_dir: str, filename: str) -> pd.Dat
         df = calculate_invariant_mass(short_data, col_energy="p0", col_px="px", col_py="py", col_pz="pz")
         df = enrich_dilepton_with_parent(df)
         df = adjust_shining_weights(df)
-        df["run_id"] = int(run_dir.name)
+        df["run_id"] = _parse_run_dir_name(run_dir.name)[0]
         aggregated.append(df)
 
     if not aggregated:
