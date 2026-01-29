@@ -45,10 +45,10 @@ OSCAR_DATA_TYPES = {
     "pdg_mother2": "int32",
     "baryon_number": "int8",
     "strangeness": "int8",
-    "weight": "float64",
-    "partial": "float64",
+    "weight": "float32",
+    "partial": "float32",
     "p_parent_pdg_id": "int32",
-    "block_weight_adj": "float64",
+    "block_weight_adj": "float32",
 }
 
 # -----------------------------
